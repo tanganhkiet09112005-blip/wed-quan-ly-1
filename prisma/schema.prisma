@@ -1,0 +1,477 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   // "admin", "customer", "staff"
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  orders    Order[]  @relation("CustomerOrders")
+  
+  shopId    String?
+  shop      Shop?    @relation(fields: [shopId], references: [id])
+}
+
+model Shop {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g. SHOP001, SHOP002
+  name        String   // Shop name (e.g. Shop Quần Áo GenZ)
+  ownerName   String   // Merchant owner name
+  email       String   @unique
+  phone       String
+  status      String   @default("active") // "active", "inactive"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  orders      Order[]
+  configs     ShopConfig?
+  shippers    ShopShipper[]
+  customers   Customer[]
+  pancakeLogs PancakeLog[]
+  chatSessions ChatSession[]
+  carrierEvents CarrierEvent[]
+  facebookConnections FacebookPageConnection[]
+  botSettings BotSettings?
+  auditLogs   AuditLog[]
+  products    Product[]
+  productVariants ProductVariant[]
+  inventoryMovements InventoryMovement[]
+  ecommerceConnections EcommerceChannelConnection[]
+  invoices    Invoice[]
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g. KH001
+  name        String
+  phone       String
+  email       String?
+  address     String
+  status      String   @default("active") // "active", "inactive", "blacklist"
+  blacklistReason String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  shopId      String?
+  shop        Shop?    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  orders      Order[]
+
+  @@unique([shopId, phone])
+}
+
+model ShipperPartner {
+  id              String   @id @default(cuid())
+  code            String   @unique // GHN, GHTK, JT
+  name            String
+  status          String   @default("active")
+  apiKey          String?
+  apiToken        String?
+  codFeePercent   Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  orders          Order[]
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  code            String   @unique // e.g. DH20240001
+  status          String   @default("pending") // pending, shipping, delivered, returned, cancelled, issue, partial
+  totalValue      Float    @default(0)
+  codAmount       Float    @default(0)
+  shippingFee     Float    @default(0)         // cước phí vận chuyển
+  carrierFee      Float    @default(0)
+  codStatus       String   @default("pending") // pending, collecting, collected, reconciled, returned, cancelled
+  codCollectedAt  DateTime?
+  trackingCode    String?
+  carrierName     String?
+  channel         String   @default("direct") // direct, fanpage, livestream
+  note            String?  @db.Text
+  shippingAddress String   @db.Text
+  shippingPhone   String
+  shippingName    String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deliveredAt     DateTime?
+  returnedAt      DateTime?
+  stockDeductedAt DateTime?
+  stockRestoredAt DateTime?
+
+  // Relations
+  userId          String?
+  user            User?     @relation("CustomerOrders", fields: [userId], references: [id])
+  customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  shipperCode     String?
+  shipper         ShipperPartner? @relation(fields: [shipperCode], references: [code])
+  
+  shopId          String?
+  shop            Shop?     @relation(fields: [shopId], references: [id])
+  
+  items           OrderItem[]
+  invoice         Invoice?
+  chatSession     ChatSession? @relation("ChatDraftOrder")
+  carrierEvents   CarrierEvent[]
+  inventoryMovements InventoryMovement[]
+
+  @@index([shopId, status])
+  @@index([shopId, codStatus])
+  @@index([shopId, shipperCode])
+  @@index([stockDeductedAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  name        String
+  quantity    Int      @default(1)
+  price       Float    @default(0)
+  unitPrice   Float    @default(0)
+  lineTotal   Float    @default(0)
+  sku         String?
+  productCode String?
+  productName String?
+  variantName String?
+  size        String?
+  color       String?
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId   String?
+  variant     ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([variantId])
+  @@index([sku])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  code        String
+  name        String
+  description String?  @db.Text
+  category    String?
+  imageUrl    String?
+  status      String   @default("active") // active, inactive
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  variants    ProductVariant[]
+  inventoryMovements InventoryMovement[]
+  orderItems  OrderItem[]
+
+  @@unique([shopId, code])
+  @@index([shopId])
+  @@index([shopId, status])
+  @@index([shopId, code])
+}
+
+model ProductVariant {
+  id                String   @id @default(cuid())
+  shopId            String
+  shop              Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku               String
+  name              String?
+  size              String?
+  color             String?
+  price             Float    @default(0)
+  stockQuantity     Int      @default(0)
+  lowStockThreshold Int      @default(5)
+  status            String   @default("active") // active, inactive
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  inventoryMovements InventoryMovement[]
+  orderItems         OrderItem[]
+
+  @@unique([shopId, sku])
+  @@index([shopId])
+  @@index([shopId, status])
+  @@index([productId])
+  @@index([shopId, sku])
+}
+
+model InventoryMovement {
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  type      String   // import, export, adjustment, order
+  quantity  Int
+  note      String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([shopId, createdAt])
+  @@index([productId])
+  @@index([variantId])
+  @@index([orderId])
+}
+
+model Invoice {
+  id                String   @id @default(cuid())
+  shopId            String
+  shop              Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  orderId           String?  @unique
+  order             Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  code              String   
+  type              String   @default("sale") // sale, return, adjustment
+  status            String   @default("draft") // draft, issued, cancelled, failed
+  
+  customerName      String
+  customerPhone     String?
+  customerTaxCode   String?
+  customerAddress   String?  @db.Text
+  
+  subtotal          Float    @default(0)
+  discount          Float    @default(0)
+  tax               Float    @default(0)
+  total             Float    @default(0)
+  paymentMethod     String?
+  
+  issuedAt          DateTime?
+  cancelledAt       DateTime?
+  
+  provider          String?
+  providerInvoiceId String?
+  rawPayload        String?  @db.Text
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  items             InvoiceItem[]
+
+  @@unique([shopId, code])
+  @@index([shopId, status])
+  @@index([orderId])
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  shopId      String?
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  productId   String?
+  variantId   String?
+  sku         String?
+  
+  name        String
+  quantity    Int
+  unitPrice   Float
+  taxRate     Float    @default(0)
+  lineTotal   Float
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([invoiceId])
+  @@index([shopId])
+}
+
+model PancakeLog {
+  id          String   @id @default(cuid())
+  postId      String?
+  streamId    String?
+  customerName String
+  comment     String   @db.Text
+  product     String
+  status      String   @default("pending") // pending, confirmed, creating_order
+  price       Float    @default(0)
+  channel     String   // fanpage, livestream
+  createdAt   DateTime @default(now())
+
+  shopId      String?
+  shop        Shop?    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+model ChatSession {
+  id              String   @id @default(cuid())
+  channel         String   // fanpage, livestream
+  customerName    String?
+  customerPhone   String?
+  shippingAddress String?  @db.Text
+  productName     String?
+  size            String?
+  quantity        Int?
+  status          String   @default("collecting") // collecting, ready, draft_created, confirmed
+  missingFields   String?  @db.Text
+  rawComment      String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shopId          String?
+  shop            Shop?    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  draftOrderId    String?  @unique
+  draftOrder      Order?   @relation("ChatDraftOrder", fields: [draftOrderId], references: [id], onDelete: SetNull)
+
+  messages        ChatMessage[]
+
+  @@index([shopId, channel])
+  @@index([shopId, status])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sender    String   // customer, bot, shop
+  content   String   @db.Text
+  parsedData String? @db.Text
+  createdAt DateTime @default(now())
+
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model CarrierEvent {
+  id                String   @id @default(cuid())
+  shopId            String
+  shop              Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  orderId           String
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrierCode       String
+  trackingCode      String
+  eventStatus       String
+  mappedOrderStatus String
+  rawPayload        String?  @db.Text
+  note              String?  @db.Text
+  createdAt         DateTime @default(now())
+
+  @@index([shopId, carrierCode])
+  @@index([shopId, createdAt])
+  @@index([orderId, createdAt])
+  @@index([trackingCode])
+}
+
+model ShopConfig {
+  id              String   @id @default(cuid())
+  shopId          String   @unique
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+  // Facebook / Pancake Integration
+  fbPageId        String?
+  fbAccessToken   String?  @db.Text
+  pancakeToken    String?  @db.Text
+  fbStatus        String   @default("inactive") // active, inactive
+
+  // MISA SME Integration
+  misaAppId       String?
+  misaApiKey      String?  @db.Text
+  misaCompanyCode String?
+  misaStatus      String   @default("inactive") // active, inactive
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ShopShipper {
+  id              String   @id @default(cuid())
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  shipperCode     String   // "GHN", "GHTK", "JT"
+  status          String   @default("inactive") // "active", "inactive"
+  mode            String   @default("mock")    // "mock", "sandbox", "production"
+  apiKey          String?  // GHN Shop ID, J&T API Key, etc.
+  apiToken        String?  @db.Text // GHN Token, GHTK Token, J&T Customer ID, etc.
+  codFeePercent   Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([shopId, shipperCode])
+}
+
+model FacebookPageConnection {
+  id          String   @id @default(cuid())
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  pageId      String
+  pageName    String
+  accessToken String   @db.Text // Encrypted Page Access Token
+  status      String   @default("active") // "active", "inactive"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([shopId, pageId])
+}
+
+model FacebookWebhookEvent {
+  id           String   @id @default(cuid())
+  shopId       String?  // Mapped if page matches connected pages
+  pageId       String?
+  eventId      String?  @unique
+  eventType    String   // "message", "post", "comment", etc.
+  rawPayload   String   @db.Text
+  status       String   @default("unprocessed") // "unprocessed", "processed", "failed", "ignored"
+  errorMessage String?  @db.Text
+  createdAt    DateTime @default(now())
+}
+
+model BotSettings {
+  id                    String   @id @default(cuid())
+  shopId                String   @unique
+  shop                  Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  botEnabled            Boolean  @default(true)
+  autoReply             Boolean  @default(false)
+  welcomeMessage        String?  @db.Text
+  missingPhoneMessage   String?  @db.Text
+  missingAddressMessage String?  @db.Text
+  orderConfirmMessage   String?  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  shopId     String?
+  shop       Shop?    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  action     String   // "login", "create_shop", "create_order", "edit_order", "cancel_order", "confirm_draft", "push_carrier", "carrier_webhook", "update_carrier_credential", "update_facebook_connection", "update_cod"
+  entityType String?  // "Order", "Shop", "ShopShipper", "FacebookPageConnection", etc.
+  entityId   String?
+  ipAddress  String?
+  userAgent  String?
+  payload    String?  @db.Text // JSON string with censored secrets
+  createdAt  DateTime @default(now())
+}
+
+model EcommerceChannelConnection {
+  id              String   @id @default(cuid())
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  platform        String   // "shopee", "lazada", "tiktok"
+  mode            String   @default("mock") // "mock", "sandbox", "production"
+  status          String   @default("active") // "active", "inactive"
+  externalShopId  String
+  accessToken     String?  @db.Text // Encrypted Page Access Token
+  refreshToken    String?  @db.Text // Encrypted Refresh Token
+  lastSyncAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([shopId, platform, externalShopId])
+  @@index([shopId])
+}
