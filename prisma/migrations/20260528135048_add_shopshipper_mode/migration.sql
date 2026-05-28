@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `shopshipper` ADD COLUMN `mode` VARCHAR(191) NOT NULL DEFAULT 'mock';
+ALTER TABLE `ShopShipper` ADD COLUMN `mode` VARCHAR(191) NOT NULL DEFAULT 'mock';
 
 -- CreateTable
 CREATE TABLE `FacebookPageConnection` (
