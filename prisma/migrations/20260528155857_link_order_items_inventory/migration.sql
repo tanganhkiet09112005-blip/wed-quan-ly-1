@@ -1,12 +1,12 @@
 -- AlterTable
-ALTER TABLE `inventorymovement` ADD COLUMN `orderId` VARCHAR(191) NULL;
+ALTER TABLE `InventoryMovement` ADD COLUMN `orderId` VARCHAR(191) NULL;
 
 -- AlterTable
-ALTER TABLE `order` ADD COLUMN `stockDeductedAt` DATETIME(3) NULL,
+ALTER TABLE `Order` ADD COLUMN `stockDeductedAt` DATETIME(3) NULL,
     ADD COLUMN `stockRestoredAt` DATETIME(3) NULL;
 
 -- AlterTable
-ALTER TABLE `orderitem` ADD COLUMN `color` VARCHAR(191) NULL,
+ALTER TABLE `OrderItem` ADD COLUMN `color` VARCHAR(191) NULL,
     ADD COLUMN `lineTotal` DOUBLE NOT NULL DEFAULT 0,
     ADD COLUMN `productCode` VARCHAR(191) NULL,
     ADD COLUMN `productId` VARCHAR(191) NULL,
