@@ -3,11 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { JT_STATUS_MAP } from '@/lib/carriers/jt';
 import { verifyOptionalWebhookSecret } from '@/lib/server/webhook';
 
-/**
- * POST /api/webhooks/jt
- * J&T gọi về đây khi trạng thái đơn thay đổi.
- * Cấu hình trong J&T Open API Portal → Webhook Settings
- */
 export async function POST(request) {
   try {
     const webhookError = verifyOptionalWebhookSecret(request);
@@ -15,7 +10,6 @@ export async function POST(request) {
       return NextResponse.json({ status: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    // JT sends data as JSON or form-data
     let body;
     const contentType = request.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
@@ -33,8 +27,8 @@ export async function POST(request) {
     // J&T STANDARD webhook payload format
     const billcode = body.billcode;
     const statusCode = body.status_code || body.scantype;
-    const remark = body.desc || body.remark;
-    const freightfee = body.freightfee;
+    const remark = body.desc || body.remark || body.status_name;
+    const totalFee = body.totalfee || body.fee || body.freightfee;
 
     if (!billcode) {
       return NextResponse.json({ status: false, message: 'Thiếu billcode' }, { status: 400 });
@@ -45,28 +39,24 @@ export async function POST(request) {
     });
 
     if (!order) {
-      console.warn(`[J&T Webhook] Order not found: ${billcode}`);
-      return NextResponse.json({ status: true, message: 'Order not found, ignored' });
+      // Don't leak DB info, just ignore
+      return NextResponse.json({ status: true });
     }
 
     const hshipStatus = JT_STATUS_MAP[String(statusCode)] || null;
     const updateData  = {};
 
     if (hshipStatus)  updateData.status      = hshipStatus;
-    if (freightfee)   updateData.shippingFee = parseFloat(freightfee);
+    if (totalFee)     updateData.shippingFee = parseFloat(totalFee);
     if (hshipStatus === 'delivered') updateData.deliveredAt = new Date();
     if (hshipStatus === 'returned')  updateData.returnedAt  = new Date();
     if (remark)       updateData.note = [order.note, `[J&T] ${remark}`].filter(Boolean).join(' | ');
 
     await prisma.order.update({ where: { id: order.id }, data: updateData });
 
-    console.log(`[J&T Webhook] ${billcode} → ${statusCode} → Hship: ${hshipStatus}`);
-    
-    // Response thành công theo chuẩn J&T API STANDARD
     return NextResponse.json({ status: true });
 
   } catch (error) {
-    console.error('[J&T Webhook Error]', error);
-    return NextResponse.json({ status: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ status: false, message: 'Unauthorized' }, { status: 500 }); // Obfuscated internal error
   }
 }
