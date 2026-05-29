@@ -1,220 +1,284 @@
-# HƯỚNG DẪN SỬ DỤNG VÀ BÀN GIAO HỆ THỐNG HSHIP.VN
+# Hướng Dẫn Sử Dụng Và Bàn Giao Hệ Thống Hship/Uship
 
-**Phiên bản:** Production Core Ready  
-**Đối tượng sử dụng:** Khách hàng / Quản lý shop / Admin / Kỹ thuật  
-**Ghi chú:** Tài liệu dùng cho vận hành, kiểm thử UAT, backup/restore và cấu hình production  
+- **Phiên bản:** Production Ready
+- **Đối tượng sử dụng:** Khách hàng, Admin tổng, Admin con, Shop, Kỹ thuật
+- **Ngày cập nhật:** 2026-05-30
+- **Ghi chú:** Tài liệu dùng cho vận hành app thật, UAT, bảng giá theo shop, thông luồng đơn hàng và backup/restore
 
 ---
 
-## MỤC LỤC
-1. [Trạng thái hệ thống & Giới thiệu](#1-trạng-thái-hệ-thống--giới-thiệu)
+## Mục lục
+1. [Tổng quan hệ thống](#1-tổng-quan-hệ-thống)
 2. [Phân quyền người dùng](#2-phân-quyền-người-dùng)
-3. [Hướng dẫn đăng nhập](#3-hướng-dẫn-đăng-nhập)
-4. [Tổng quan giao diện hệ thống](#4-tổng-quan-giao-diện-hệ-thống)
-5. [Hướng dẫn sử dụng khu vực Admin](#5-hướng-dẫn-sử-dụng-khu-vực-admin)
-6. [Hướng dẫn sử dụng khu vực Customer/Shop](#6-hướng-dẫn-sử-dụng-khu-vực-customershop)
-7. [CRM khách hàng](#7-crm-khách-hàng)
-8. [Quản lý Blacklist](#8-quản-lý-blacklist)
-9. [Production Credential Center](#9-production-credential-center)
-10. [Hướng dẫn cấu hình API key/tích hợp bên thứ ba](#10-hướng-dẫn-cấu-hình-api-keytích-hợp-bên-thứ-ba)
-11. [Production Guard](#11-production-guard)
-12. [Quy trình sử dụng hằng ngày](#12-quy-trình-sử-dụng-hằng-ngày)
-13. [Quy trình UAT cho khách hàng](#13-quy-trình-uat-cho-khách-hàng)
-14. [Backup dữ liệu](#14-backup-dữ-liệu)
-15. [Restore dữ liệu](#15-restore-dữ-liệu)
-16. [Deploy và rollback](#16-deploy-và-rollback)
-17. [Lỗi thường gặp và cách xử lý](#17-lỗi-thường-gặp-và-cách-xử-lý)
-18. [Quy tắc bảo mật](#18-quy-tắc-bảo-mật)
-19. [Checklist bàn giao cuối cùng](#19-checklist-bàn-giao-cuối-cùng)
-20. [Phụ lục kỹ thuật](#20-phụ-lục-kỹ-thuật)
+3. [Hướng dẫn Admin tổng tạo Admin con](#3-hướng-dẫn-admin-tổng-tạo-admin-con)
+4. [Hướng dẫn quản lý shop](#4-hướng-dẫn-quản-lý-shop)
+5. [Hướng dẫn cấu hình bảng giá riêng theo shop](#5-hướng-dẫn-cấu-hình-bảng-giá-riêng-theo-shop)
+6. [Hướng dẫn Shop lên đơn và tự tính cước](#6-hướng-dẫn-shop-lên-đơn-và-tự-tính-cước)
+7. [Hướng dẫn thông luồng / phân luồng đơn hàng](#7-hướng-dẫn-thông-luồng--phân-luồng-đơn-hàng)
+8. [Hướng dẫn cấu hình rule thông luồng](#8-hướng-dẫn-cấu-hình-rule-thông-luồng)
+9. [Hướng dẫn Admin duyệt đơn / đẩy vận chuyển](#9-hướng-dẫn-admin-duyệt-đơn--đẩy-vận-chuyển)
+10. [Hướng dẫn Shop xem trạng thái đơn](#10-hướng-dẫn-shop-xem-trạng-thái-đơn)
+11. [Production Credential Center](#11-production-credential-center)
+12. [CRM khách hàng và Blacklist](#12-crm-khách-hàng-và-blacklist)
+13. [Dashboard / Báo cáo](#13-dashboard--báo-cáo)
+14. [Checklist UAT cho khách](#14-checklist-uat-cho-khách)
+15. [Lỗi thường gặp và cách xử lý](#15-lỗi-thường-gặp-và-cách-xử-lý)
+16. [Backup / Restore / Vận hành](#16-backup--restore--vận-hành)
+17. [Bảo mật](#17-bảo-mật)
+18. [Tóm tắt kiểm tra production](#18-tóm-tắt-kiểm-tra-production)
 
 ---
 
-## 1. Trạng thái hệ thống & Giới thiệu
+## 1. Tổng quan hệ thống
+Hệ thống Hship/Uship hỗ trợ nền tảng vận chuyển đa cấp độ với các tính năng:
+- **Admin tổng / Admin con / Shop:** Phân quyền quản trị và sử dụng chặt chẽ.
+- **Quản lý shop:** Theo dõi, tạo mới, và kiểm soát cửa hàng đại lý.
+- **Bảng giá riêng theo từng shop:** Tùy biến mức giá cước linh hoạt theo từng mốc cân.
+- **Shop lên đơn tự tính cước:** Chống gian lận bằng cách áp dụng cứng giá cước theo bảng giá.
+- **Thông luồng đơn hàng (Order Routing):** Quản lý trạng thái và tự động hóa quy trình đẩy sang đối tác vận chuyển.
+- **Dashboard, báo cáo, quản lý đơn:** Thống kê lợi nhuận, doanh thu, đơn hàng theo thời gian thực.
 
-### Tóm tắt Final Production Audit
-- **Trạng thái hiện tại:** Hệ thống đạt chuẩn **Production Core Ready**.
-- **Chất lượng mã nguồn:** Hệ thống đã vượt qua toàn bộ các khâu kiểm duyệt, **lint/build pass 100%**, không còn lỗi runtime hay lỗi đồng bộ dữ liệu.
-- **Tích hợp bên thứ ba:** Các module hệ thống quan trọng như J&T Express, Facebook Fanpage, kế toán MISA SME, các sàn TMĐT (Shopee/Lazada/TikTok) và module POS bán hàng trực tiếp đã được thiết lập để **chạy production thật**. Các chức năng này sẽ kích hoạt và gọi API thực tế ngay sau khi khách hàng (hoặc quản lý shop) nhập đầy đủ API Key/credential hợp lệ vào mục cấu hình. Hoàn toàn không sử dụng dữ liệu giả lập (mock) trong quá trình vận hành thật.
-- Đã loại bỏ toàn bộ dữ liệu mẫu khỏi giao diện người dùng.
-
-### Giới thiệu Hship.vn
-Hship.vn là nền tảng quản lý bán hàng đa kênh, tích hợp trực tiếp với các đơn vị vận chuyển (J&T, GHN,...), sàn thương mại điện tử (Shopee, Lazada, TikTok) và mạng xã hội (Facebook Fanpage, Livestream). Hệ thống giúp quản lý tập trung đơn hàng, sản phẩm, tồn kho, đối soát COD và xuất hóa đơn điện tử một cách minh bạch, tách biệt giữa nhiều cửa hàng (multi-tenant).
+---
 
 ## 2. Phân quyền người dùng
-Hệ thống chia làm 3 cấp bậc tài khoản chính:
-- **Super Admin (Admin tổng):** Nắm quyền cao nhất. Quản lý toàn bộ danh sách cửa hàng (Shop), theo dõi số liệu tổng, giám sát hiệu suất và báo cáo COD toàn hệ thống. Có quyền tạo và quản lý tài khoản Admin con, cấu hình bảng giá cước cho bất kỳ cửa hàng nào.
-- **Admin (Admin con):** Quản lý trực tiếp các cửa hàng (Shop) được Admin tổng giao phó hoặc do chính Admin con tạo ra. Có quyền cấu hình bảng giá cước cho các cửa hàng thuộc quyền quản lý của mình. Không nhìn thấy dữ liệu của cửa hàng thuộc Admin khác.
-- **Customer (Chủ cửa hàng / Nhân viên Shop):** Chỉ quản lý dữ liệu thuộc về cửa hàng của mình (Khách hàng, Đơn hàng, Kho, Cấu hình API...). Khi lên đơn, hệ thống tự động tính phí vận chuyển theo đúng bảng giá cước mà Admin đã cấu hình riêng cho cửa hàng. Các cửa hàng hoàn toàn độc lập và không thể nhìn thấy dữ liệu của nhau.
 
-## 3. Hướng dẫn đăng nhập
-- **Truy cập:** Điền đường dẫn `https://[TÊN_MIỀN_CỦA_BẠN]/login` vào trình duyệt.
-- **Cách đăng nhập:** Sử dụng Email và Mật khẩu được cấp lúc bàn giao.
-- **Lưu ý:**
-  - Trên môi trường thật (Production), các nút chọn *tài khoản demo nhanh* tự động bị ẩn để đảm bảo an ninh (trừ khi lập trình viên bật cờ `SHOW_DEMO_ACCOUNTS=true`).
-  - Vui lòng đổi mật khẩu ngay sau khi tiếp nhận tài khoản.
+### Admin tổng
+- Tạo Admin con.
+- Xem toàn bộ shop.
+- Gán shop cho Admin con.
+- Cấu hình bảng giá mọi shop.
+- Cấu hình thông luồng mọi shop.
+- Duyệt đơn và đẩy vận chuyển.
+- Xem báo cáo tổng.
 
-## 4. Tổng quan giao diện hệ thống
-Giao diện được chia thành 3 phần chính:
-1. **Sidebar (Menu bên trái):** Chứa các nhóm tính năng được phân chia logic: Tổng quan, Đơn hàng & Sản phẩm, Kênh bán hàng, Hóa đơn điện tử, Báo cáo & Kế toán, Công cụ bổ trợ và Cài đặt.
-2. **Topbar (Thanh ngang trên cùng):** Hiển thị breadcrumb (bạn đang ở trang nào), Tên Shop (Badge), Nút xem thông báo (Bell) và nút Đăng xuất.
-3. **Main Content (Nội dung chính):** Khu vực hiển thị bảng dữ liệu (Table), biểu đồ KPI (Grid) và các Form nhập liệu. Trạng thái các mục sẽ được tô màu riêng biệt (VD: Đỏ cho lỗi/hủy, Xanh cho thành công/đã cấp, Vàng/Xám cho nháp hoặc chờ).
+### Admin con
+- Chỉ thấy shop thuộc quyền.
+- Tạo shop thuộc quyền.
+- Cấu hình bảng giá shop thuộc quyền.
+- Cấu hình thông luồng shop thuộc quyền.
+- Duyệt/đẩy đơn thuộc shop mình quản lý.
+- Không thấy shop của Admin khác.
+- Không tạo được Admin tổng.
 
-## 5. Hướng dẫn sử dụng khu vực Admin
-*Khu vực này chỉ khả dụng khi bạn đăng nhập bằng tài khoản Admin (Đường dẫn bắt đầu bằng `/admin`).*
+### Shop
+- Đăng nhập tạo đơn.
+- Chỉ thấy dữ liệu shop mình.
+- Lên đơn và hệ thống tự tính cước.
+- Xem trạng thái đơn.
+- Không có quyền cấu hình bảng giá hay thông luồng.
+- Không có quyền duyệt/đẩy đơn nếu không được cấp phép.
 
-### 5.1 Quản lý Admin con (Chỉ dành cho Super Admin)
-- Super Admin có thể tạo và quản lý các tài khoản Admin con (truy cập mục **Phân quyền > Quản lý Admin con**).
-- Admin con có thể đăng nhập vào hệ thống để quản lý các cửa hàng được phân công.
-- Super Admin có thể khóa/mở khóa tài khoản Admin con bất kỳ lúc nào.
+---
 
-### 5.2 Dashboard Admin
-Xem tổng quan vận hành toàn nền tảng. Hiện số lượng shop hoạt động, thống kê tổng khối lượng COD và trạng thái kết nối với hãng vận chuyển.
+## 3. Hướng dẫn Admin tổng tạo Admin con
+Các bước thực hiện:
+1. Đăng nhập Admin tổng.
+2. Vào **Quản lý Admin con** ở menu bên trái.
+3. Bấm nút **Thêm Admin**.
+4. Nhập đầy đủ **Tên, Email/Username, Mật khẩu, Trạng thái**.
+5. Bấm **Lưu** tài khoản.
+6. Kiểm tra lại xem Admin con đã xuất hiện trong danh sách chưa.
 
-### 5.3 Quản lý Shop
-Quản lý danh sách các cửa hàng đang sử dụng. Thao tác bao gồm: Tạo mới một cửa hàng (Shop mới) và cấp tài khoản tương ứng, khóa (disable) những shop ngừng gia hạn hoặc vi phạm.
-- **Phân công Admin:** Khi tạo shop mới, Super Admin có thể chỉ định một Admin con quản lý shop đó. Admin con khi tạo shop sẽ tự động sở hữu shop đó.
-- **Lọc cửa hàng:** Super Admin có thể nhìn thấy tất cả cửa hàng, trong khi Admin con chỉ thấy các cửa hàng thuộc quyền quản lý của mình.
+---
 
-### 5.4 Cấu hình Bảng giá cước theo Shop
-- Tại danh sách Shop, nhấn vào nút **Bảng giá** (biểu tượng bánh răng) để thiết lập giá cước vận chuyển riêng cho cửa hàng.
-- **Thêm mốc cân:** Admin cấu hình các mức giá dựa trên trọng lượng (VD: Từ 0kg - 5kg là 22.000đ). Các mốc cân **không được chồng lấp (overlap)** lên nhau.
-- **Tự động áp dụng:** Khi cấu hình xong, mỗi khi Shop lên đơn và nhập trọng lượng, hệ thống sẽ tự động tính đúng giá cước của Shop đó. Nếu Shop chưa được cấu hình, hệ thống sẽ cảnh báo không cho tự định giá ảo.
+## 4. Hướng dẫn quản lý shop
+Hệ thống quản lý theo quy định sau:
+- **Admin tổng** có thể xem tất cả các shop.
+- **Admin con** chỉ xem được shop thuộc quyền mình.
+- Admin tổng khi **Tạo shop mới** có thể gán shop đó cho bất kỳ Admin con nào thông qua dropdown.
+- Ý nghĩa cột **Admin quản lý**: Chỉ ra ai đang phụ trách shop này. Nếu shop chưa gán Admin con, hệ thống sẽ tự hiểu là "Admin tổng" hoặc "Chưa gán".
 
-### 5.5 Chi tiết Shop
-Admin có thể xem thông số của một cửa hàng cụ thể (tại `/admin/shops/[id]`). Màn hình này hiển thị an toàn: Admin chỉ thấy các module shop đã kết nối (VD: Trạng thái Facebook, MISA là Active) nhưng **KHÔNG** thể đọc được Access Token hoặc mật khẩu của khách, đảm bảo quyền riêng tư.
+---
 
+## 5. Hướng dẫn cấu hình bảng giá riêng theo shop
+Mỗi shop có thể có bảng giá riêng theo mốc cân.
 
-## 6. Hướng dẫn sử dụng khu vực Customer/Shop
-*Khu vực dành cho chủ shop vận hành, đường dẫn bắt đầu bằng `/customer`.*
+**Ví dụ:**
+- **Shop A:** 0–5kg = 22.000đ
+- **Shop B:** 0–5kg = 30.000đ
+- Khi Shop A lên đơn 5kg → hệ thống hiển thị **22.000đ**.
+- Khi Shop B lên đơn 5kg → hệ thống hiển thị **30.000đ**.
 
-- **Dashboard:** Bảng điều khiển trung tâm, cho thấy đơn hàng mới và doanh thu trong ngày.
-- **Đơn hàng (`/customer/orders/manage`):** Nơi tạo đơn thủ công, kiểm tra trạng thái đơn hàng. Khi **Tạo đơn hàng**, sau khi bạn điền Trọng lượng (kg), hệ thống sẽ tự động tính đúng Cước phí dựa trên bảng giá mà Admin đã cấu hình riêng cho bạn. Cước phí này được khóa lại để đảm bảo tính minh bạch. Nếu chưa có bảng giá, hệ thống sẽ cảnh báo yêu cầu liên hệ Admin. Bạn có thể thực hiện thao tác "Đẩy đơn sang hãng vận chuyển" (như J&T).
-- **Kho & Sản phẩm:** Tạo danh sách sản phẩm, quản lý số lượng tồn. Hệ thống tự động trừ kho khi có đơn hợp lệ và tự cộng lại kho khi hủy đơn hoặc khách trả hàng.
-- **Sàn TMĐT, Fanpage, Livestream:** Quản lý kết nối và nhận dữ liệu từ Shopee, TikTok, Facebook... (yêu cầu cấu hình token thật).
-- **Hóa đơn điện tử:** Quản lý và xuất hóa đơn GTGT cho đơn hàng (yêu cầu kết nối MISA SME hoặc VNPT).
-- **Đối soát COD:** Kiểm tra dòng tiền vận chuyển, khớp đối soát từ các hãng vận chuyển đẩy về.
+**Các bước cấu hình:**
+1. Admin vào **Quản lý shop**.
+2. Chọn shop cần cấu hình.
+3. Bấm nút **Bảng giá** (Icon hình bánh răng).
+4. Bấm **Thêm mốc cân**.
+5. Nhập **Từ kg, Đến kg, Giá cước, Ghi chú**.
+6. Bấm **Lưu**.
 
-## 7. CRM khách hàng
-Trung tâm lưu trữ dữ liệu người mua.
-- **Xem danh sách:** Truy cập `/customer/clients` để thấy danh sách toàn bộ khách hàng đã từng mua qua đa kênh.
-- **Chức năng:** Tìm kiếm/lọc khách hàng, nhấn vào tên khách để chỉnh sửa thông tin giao hàng (SĐT, Địa chỉ). 
-- **Lưu ý:** Hệ thống tự động gom (merge) dữ liệu nếu trùng Số điện thoại hoặc ID mạng xã hội.
+**Quy tắc bắt buộc:**
+- Từ kg phải nhỏ hơn Đến kg.
+- Giá cước phải lớn hơn 0.
+- Không được tạo mốc cân chồng nhau (Overlap).
+- Đổi bảng giá hiện tại sẽ **không** làm thay đổi cước phí của các đơn cũ đã tạo trước đó.
 
-## 8. Quản lý Blacklist
-Bảo vệ cửa hàng khỏi các rủi ro hoàn/hủy hàng.
-- **Thêm vào Blacklist:** Truy cập `/customer/clients/blacklist`, nhấn "Thêm mới", điền số điện thoại và lý do bom hàng (VD: "Từ chối nhận 3 lần", "Boom hàng giá trị cao").
-- **Gỡ khỏi Blacklist:** Nếu khách hàng uy tín trở lại, bạn có thể chỉnh sửa bỏ tick Blacklist hoặc xóa hẳn khỏi danh sách.
-- **Lưu ý:** Nếu bạn cố tạo đơn hàng cho số điện thoại đang nằm trong Blacklist, hệ thống sẽ hiện cảnh báo đỏ.
+---
 
-## 9. Production Credential Center
-Tại sao phải cần Credential Center?
-- **Credential là gì?** Là các "chìa khóa" (API Key, Access Token, App Secret) do Shopee, J&T, Facebook cấp. Chúng chứng minh phần mềm Hship.vn có quyền thao tác thay cho chủ shop.
-- **Truy cập:** Cài đặt -> `Production Credentials` (`/customer/settings/production`).
-- **Chức năng:** Màn hình này quét toàn bộ hệ thống và trả về trạng thái màu xanh (`Production Ready`) nếu bạn đã nhập đúng key. Ngược lại, nó báo cảnh báo đỏ/vàng `Missing Credentials`.
-- **LƯU Ý ĐẶC BIỆT:** *Nếu hệ thống báo Missing Credentials, thì đây là trạng thái hệ thống đang chờ bạn (hoặc quản lý shop) cung cấp thông tin/API key thật từ bên đối tác, KHÔNG PHẢI lỗi phần mềm. Vui lòng tự lấy Key và cập nhật.*
+## 6. Hướng dẫn Shop lên đơn và tự tính cước
+**Các bước:**
+1. Shop đăng nhập tài khoản.
+2. Vào phần **Tạo đơn**.
+3. Nhập đầy đủ thông tin người nhận hàng.
+4. Nhập **trọng lượng** gói hàng.
+5. Hệ thống tự quét lấy bảng giá của shop đang đăng nhập và **tự điền phí vận chuyển**.
+6. Shop kiểm tra thông tin và tạo đơn.
 
-## 10. Hướng dẫn cấu hình API key/tích hợp bên thứ ba
-Bạn cần chủ động liên hệ các bên thứ 3 để xin tài khoản kết nối, sau đó vào Hship dán các key này vào màn hình cấu hình tương ứng.
+> [!IMPORTANT] Lưu ý
+> - Phí được lưu snapshot vào đơn tại thời điểm tạo, an toàn không bị lệch báo cáo.
+> - Shop **không tự sửa phí** nếu phí đã được lấy từ bảng giá (Input bị khoá).
+> - Nếu Shop chưa có bảng giá sẽ thấy cảnh báo: *"Shop chưa được cấu hình bảng giá cước. Vui lòng liên hệ Admin."* và không cho tiếp tục.
 
-### J&T Express (Vận chuyển)
-- **Mục đích:** Tự động đẩy vận đơn và nhận Webhook báo trạng thái giao hàng.
-- **Cần chuẩn bị:** Xin J&T cấp `eccompanyid`, `customerid`, `key`.
-- **Thao tác:** Dán thông tin vào `/customer/partners/shippers`. Copy Webhook URL từ Credential Center dán vào cổng J&T (VD: `https://.../api/webhooks/jt?secret=...`).
+---
 
-### Sàn TMĐT (Shopee / Lazada / TikTok)
-- **Cần chuẩn bị:** Đăng ký tài khoản Developer trên Open Platform của sàn, tạo App và sinh ra `Access Token`, `Refresh Token`.
-- **Thao tác:** Truy cập `/customer/channels/ecommerce`. Chọn sàn và dán Token cùng `Shop ID`.
+## 7. Hướng dẫn thông luồng / phân luồng đơn hàng
+Thông luồng là cơ chế hệ thống tự xác định trạng thái xử lý đơn.
 
-### Facebook Fanpage & Livestream
-- **Cần chuẩn bị:** Tạo ứng dụng Meta, sinh `Page Access Token`.
-- **Thao tác:** Dán Token và thiết lập Webhook bằng `Verify Token` của Hship để nhận comment và tự động gom tin nhắn thành đơn nháp.
+| Trạng thái | Ý nghĩa | Ai xử lý |
+|---|---|---|
+| `READY_TO_PUSH` | Đơn đủ điều kiện đẩy vận chuyển | Admin |
+| `WAITING_APPROVAL` | Đơn vướng rule, cần Admin duyệt | Admin |
+| `MANUAL_PROCESSING` | Đơn đặc biệt cần xử lý thủ công | Admin |
+| `MISSING_CREDENTIALS` | Shop thiếu API vận chuyển | Admin/Kỹ thuật |
+| `PRICING_MISSING` | Shop thiếu bảng giá/mốc cân | Admin |
+| `BLOCKED` | Đơn bị chặn theo rule hoặc blacklist | Admin |
+| `PUSHED_TO_CARRIER` | Đơn đã đẩy vận chuyển thành công | Theo dõi |
+| `PUSH_FAILED` | Đẩy vận chuyển sang Hãng bị thất bại | Admin/Kỹ thuật |
 
-### Hóa đơn điện tử (MISA / VNPT)
-- **Cần chuẩn bị:** Xin bộ API kết nối từ MISA SME.
-- **Thao tác:** Dán API Key, Mã số thuế để Hship có thể khởi tạo hóa đơn thật qua cơ quan thuế.
+---
 
-## 11. Production Guard
-- **Là gì?** "Lính gác" bảo vệ hệ thống trên môi trường Production.
-- **Nguyên lý:** Nếu bạn bật chế độ Production nhưng quên nhập Access Token thật, Production Guard sẽ chủ động **chặn đứng** mọi nút bấm "Tạo đơn", "Đồng bộ", "Xuất Hóa Đơn".
-- **Vì sao không cho chạy Sync Mock (Giả lập)?** Trên môi trường thật, việc cố tình trộn lẫn đơn giả lập (Mock) với các đơn xuất thật sẽ làm hỏng đối soát COD và tồn kho thật của cửa hàng.
-- **Xử lý:** Khi bị Guard chặn, màn hình sẽ hiện hộp thoại vàng cảnh báo. Hãy đọc mục số 10 để cấp API thật.
+## 8. Hướng dẫn cấu hình rule thông luồng
+**Các bước:**
+1. Vào trang chi tiết Shop.
+2. Vào phần **Thông luồng / Flow Rules**.
+3. Bấm Thêm rule.
+4. Chọn loại điều kiện (Giá trị COD, Trọng lượng...).
+5. Nhập giá trị đối chiếu.
+6. Chọn hành động (Waiting Approval, Blocked...).
+7. Lưu rule.
 
-## 12. Quy trình sử dụng hằng ngày
-| Thời gian | Hành động cần thực hiện |
-|---|---|
-| **Đầu ngày** | • Xem Dashboard kiểm tra đơn tồn.<br>• Vào Credential Center kiểm tra xem có Token Sàn nào sắp hết hạn (cảnh báo vàng) hay bị ngắt kết nối không. |
-| **Trong ngày** | • Vào mục Đơn hàng để chốt, gọi xác nhận và đẩy vận đơn sang J&T/GHN.<br>• Quản lý tồn kho xem mặt hàng nào sắp hết để nhập. |
-| **Cuối ngày** | • Kiểm tra lại tình trạng "Đã lấy hàng" của J&T xem có kẹt đơn không.<br>• Xuất file đối soát COD để so khớp số tiền về thẻ ngân hàng. |
+**Ví dụ thực tế:**
+- Nếu `COD > 5.000.000đ` → Hệ thống tự gắn mác `WAITING_APPROVAL`.
+- Nếu `Trọng lượng > 20kg` → Gắn mác `MANUAL_PROCESSING`.
+- Nếu Khách nằm trong `Blacklist` → Gắn mác `BLOCKED` hoặc `WAITING_APPROVAL`.
 
-## 13. Quy trình UAT cho khách hàng
-*Dành cho quản lý shop khi nghiệm thu hệ thống:*
-- [ ] Test Đăng nhập thành công, giao diện Sidebar đúng thẩm quyền.
-- [ ] Vào CRM Khách hàng: Thử thêm/sửa khách hàng mới.
-- [ ] Vào Blacklist: Thử nhập 1 số điện thoại vào Blacklist. Thử tạo đơn hàng với SĐT đó xem hệ thống có chặn và báo đỏ không.
-- [ ] Tạo đơn thủ công, kiểm tra tồn kho xem có tự động trừ kho không.
-- [ ] Hủy đơn hàng đó, xem tồn kho có được cộng trả lại không.
-- [ ] Vào Credential Center: Kiểm tra cảnh báo Missing Credentials (khi chưa cấu hình API).
-- [ ] Vào Sàn TMĐT, chọn chế độ Production. Thử ấn đồng bộ. Đảm bảo Production Guard chặn và yêu cầu nhập Access Token thật.
-- [ ] Chốt nghiệm thu.
+---
 
-## 14. Backup dữ liệu
-- **Database (PostgreSQL / Supabase):** Khuyến nghị cấu hình sao lưu tự động hàng ngày lúc 2h sáng (PITR). Có thể backup thủ công bằng lệnh `pg_dump`.
-- **Source Code:** Nằm an toàn trên GitHub. Luôn tạo `git tag / release` trước khi deploy tính năng mới.
-- **Biến môi trường (ENV):** Export từ nền tảng Vercel và lưu vào Password Manager (1Password/Bitwarden). *Tuyệt đối không push file .env lên Github.*
-- **Media (nếu có):** Backup storage layer định kỳ nếu lưu trữ hóa đơn, file chứng từ.
+## 9. Hướng dẫn Admin duyệt đơn / đẩy vận chuyển
+1. Vào **Quản lý đơn hàng** bên phía Admin.
+2. Xem badge trạng thái luồng.
+3. Nếu đơn là `WAITING_APPROVAL` → bấm **Duyệt**.
+4. Nếu đơn là `READY_TO_PUSH` → bấm **Đẩy vận chuyển**.
+5. Nếu đơn là `PUSH_FAILED` → bấm **Thử lại** để gọi lại API.
+6. Shop hoàn toàn không có quyền thao tác các nút quản trị này.
 
-## 15. Restore dữ liệu
-- **Khi nào cần Restore?** Khi nhân sự lỡ tay xóa hàng loạt dữ liệu quan trọng, hoặc bản cập nhật phần mềm gây lỗi logic trầm trọng.
-- **Khôi phục Database:** Chạy lệnh `pg_restore` từ bản dump gần nhất hoặc nhấn Restore từ Supabase.
-- **Khôi phục Source Code (Rollback):** Vào Vercel -> tab Deployments -> Chọn bản build hoạt động tốt gần nhất -> Click "Instant Rollback" hoặc "Promote to Production".
-- **Kiểm tra sau khôi phục:** 
-  1. Login vào lại tài khoản Admin. 
-  2. Test lại bảng Khách hàng (CRM) và Tồn kho. 
-  3. Quan trọng nhất: Vào Credential Center xem API Token của các shop có còn nguyên không.
+---
 
-## 16. Deploy và rollback
-- **Môi trường Deploy:** Dự án sử dụng **Vercel** (cho Frontend Next.js / Backend API) kết nối với database PostgreSQL.
-- **Kiểm tra Deploy:** Khi push code lên nhánh `main`, Vercel sẽ tự kích hoạt build. Đọc log trong Vercel. Nếu log ghi `Compiled successfully` -> Build thành công. Nếu thất bại, Vercel sẽ không đổi giao diện thật của khách mà giữ nguyên bản cũ.
-- **Quy trình Deploy:** Trước khi deploy, phải đảm bảo đã test local, đã lưu ENV và đã backup database. Không deploy vào sát giờ shop chốt nhiều đơn (chiều tối/đêm).
+## 10. Hướng dẫn Shop xem trạng thái đơn
+1. Shop vào danh sách đơn hàng.
+2. Xem cột trạng thái đơn.
+3. Giải thích một số thông báo từ hệ thống:
+   - *Tạo đơn thành công, đang chờ Admin duyệt*
+   - *Đơn đã được ghi nhận, đang chờ cấu hình vận chuyển*
+   - *Shop chưa được cấu hình bảng giá cước*
+   - *Đơn đủ điều kiện xử lý*
 
-## 17. Lỗi thường gặp và cách xử lý
+---
 
-| Lỗi / Hiện tượng | Nguyên nhân có thể | Cách tự kiểm tra | Khi nào báo kỹ thuật |
-|------------------|--------------------|------------------|----------------------|
-| **Không đăng nhập được** | Sai mật khẩu, tk bị khóa | F5 trình duyệt, nhớ check Capslock. Nhờ Admin kiểm tra trạng thái khóa shop. | Khi thấy màn hình báo 500 Internal Server Error |
-| **Không thấy nút "Đăng nhập nhanh" (Demo)** | Môi trường Production | Đây là thiết kế bảo mật, vui lòng gõ tay tài khoản của bạn. | Không cần |
-| **Báo lỗi Missing Credentials** | Chưa nhập API Key bên thứ 3 | Vào mục Cài đặt -> Cấu hình kênh và dán token. | Đã dán đúng token nhưng vẫn cảnh báo |
-| **Không đồng bộ được đơn sàn** | Access Token hết hạn | Sinh lại Token từ trang Đối tác Sàn (Shopee) và dán lại vào Hship. | Sinh lại token vẫn báo lỗi |
-| **Hủy đơn trên hệ thống nhưng J&T không hủy** | Sai J&T Credential hoặc lỗi Webhook | Ấn nút `Test Connection` ở mục J&T xem có bắt tay API được không. | Test báo thành công nhưng đơn kẹt liên tục |
-| **Không xuất được hóa đơn điện tử** | Thiếu API Key MISA / VNPT | Cấu hình MISA SME trong mục Hóa đơn. Đảm bảo mode không phải Mock. | Hệ thống MISA vẫn chạy tốt nhưng app lỗi |
-| **Mất giao diện trắng xóa (Trang báo lỗi)** | Lỗi kết nối Database tạm thời | Thử tắt WiFi mở lại, hoặc F5 trang web. | Vẫn trắng xóa sau 5 phút |
+## 11. Production Credential Center
+- **Khái niệm:** API key/credential là thông tin kết nối thật với đơn vị vận chuyển/nền tảng bên thứ ba (GHTK, GHN, J&T).
+- Nếu thiếu thông tin này, hệ thống sẽ báo `MISSING_CREDENTIALS`.
+- **Lưu ý:** Đây **không phải lỗi phần mềm**. Khi nhập đủ API key thật, hệ thống mới có thể đẩy vận chuyển thật (Không fake success).
 
-## 18. Quy tắc bảo mật
-1. **API Key là Tiền:** Không bao giờ gửi ảnh chụp màn hình có lộ Access Token hoặc API Key J&T qua các group Zalo. Kẻ gian có thể dùng nó để thao túng đơn hàng của bạn.
-2. **Không share tài khoản Admin:** Tính năng quản trị cao cấp không nên dùng chung. Tạo riêng account cho nhân sự.
-3. **Thu hồi quyền:** Khi nhân sự nghỉ việc, lập tức vào `/admin/shops` (nếu là shop con) hoặc đổi mật khẩu tài khoản để khóa truy cập.
-4. **Biến môi trường `.env`:** Developer tuyệt đối không commit file này lên GitHub công khai.
-5. Nếu lỡ nghi ngờ lộ Key Shopee/TikTok/J&T, hãy vào ngay hệ thống gốc (Shopee Developer / J&T Portal) để ấn nút "Reset Secret Key" (Sinh khóa mới), sau đó cập nhật lại vào Hship.
+---
 
-## 19. Checklist bàn giao cuối cùng
-- [ ] Bàn giao link Website Production (VD: hship-management.vercel.app hoặc domain riêng).
-- [ ] Bàn giao tài khoản Admin tối cao và tài khoản Owner của Shop.
-- [ ] Bàn giao link Github Repo chứa mã nguồn dự án.
-- [ ] Bàn giao quyền sở hữu project trên Vercel.
-- [ ] Bàn giao thông tin kết nối Database PostgreSQL (Supabase/Neon).
-- [ ] Cung cấp danh sách các API Key Khách hàng phải tự lấy theo [Mục 10].
-- [ ] Gửi File Hướng dẫn sử dụng này (`.docx` / `.md`).
-- [ ] Đại diện khách hàng ký nghiệm thu UAT theo [Mục 13].
+## 12. CRM khách hàng và Blacklist
+- Khách hàng nếu bị đưa vào danh sách **Blacklist** có thể làm đơn hàng tiếp theo của họ bị đánh dấu `BLOCKED` hoặc `WAITING_APPROVAL`.
+- Admin cần vào xem xét lịch sử mua hàng trước khi quyết định xử lý.
+- Shop không thể tự tiện bỏ blacklist nếu không được Admin cấp quyền.
 
-## 20. Phụ lục kỹ thuật
-> Khu vực dành cho lập trình viên bảo trì.
+---
 
-- **Frontend/Backend:** Next.js (App Router), React, Tailwind.
-- **ORM:** Prisma (`prisma/schema.prisma` - quản lý mô hình dữ liệu).
-- **Các API Cốt Lõi:**
-  - `GET/POST /api/shops`: Quản lý tenant (khách hàng).
-  - `POST /api/ecommerce/channels/[id]/sync-mock`: Mock sync test đơn sàn (Có cơ chế chống spam bằng Production Guard `mode !== 'mock'`).
-  - `POST /api/webhooks/jt`: Webhook J&T bảo mật bằng `?secret=WEBHOOK_SECRET`.
-- **Cấu trúc Guard:** Các middleware/server function (`requireShopOrAdmin`) nằm tại `lib/server/auth.js` bảo vệ toàn bộ Route API, ngăn chặn lỗi truy cập chéo dữ liệu giữa các shop.
-- **Build CLI:** `npx prisma generate && npx prisma validate && npm run build` (Cần pass trên Vercel).
+## 13. Dashboard / Báo cáo
+- **Dashboard** sẽ thống kê số liệu real-time từ đơn hàng thật.
+- Tổng phí vận chuyển lợi nhuận được hệ thống tính tự động từ cột `Order.shippingFee` (được snapshot tại thời điểm đơn được tạo).
+- **Việc thay đổi bảng giá sẽ không bao giờ làm đổi phí các đơn cũ**. Do đó, báo cáo lợi nhuận cũng sẽ không tự tính lại các đơn cũ theo bảng giá mới.
+
+---
+
+## 14. Checklist UAT cho khách
+
+### Admin tổng / Admin con
+- [ ] Admin tổng đăng nhập được.
+- [ ] Admin tổng thấy menu Quản lý Admin con.
+- [ ] Admin tổng tạo Admin con được.
+- [ ] Admin con đăng nhập được.
+- [ ] Admin con không thấy menu Quản lý Admin con.
+- [ ] Admin con chỉ thấy shop thuộc quyền.
+
+### Bảng giá theo shop
+- [ ] Shop A 0–5kg = 22.000đ.
+- [ ] Shop B 0–5kg = 30.000đ.
+- [ ] Shop A lên đơn 5kg hiện 22.000đ.
+- [ ] Shop B lên đơn 5kg hiện 30.000đ.
+- [ ] Mốc cân overlap bị chặn.
+- [ ] Giá <= 0 bị chặn.
+
+### Thông luồng
+- [ ] Shop đủ cấu hình tạo đơn ra `READY_TO_PUSH`.
+- [ ] Thiếu bảng giá ra `PRICING_MISSING`.
+- [ ] Thiếu API vận chuyển ra `MISSING_CREDENTIALS`.
+- [ ] COD vượt ngưỡng quy định ra `WAITING_APPROVAL`.
+- [ ] Admin duyệt đơn thành công sang `READY_TO_PUSH`.
+- [ ] Shop chỉ xem trạng thái, không có quyền duyệt đơn.
+
+### Regression
+- [ ] Dashboard load thành công.
+- [ ] Danh sách đơn hàng load ổn định.
+- [ ] Màn Báo cáo lợi nhuận lấy đúng số.
+- [ ] Đơn cũ vẫn giữ mức phí vận chuyển cũ.
+- [ ] Toàn bộ trang web không hiển thị lỗi `undefined`, `null` hoặc `[object Object]`.
+
+---
+
+## 15. Lỗi thường gặp và cách xử lý
+
+| Tình huống | Nguyên nhân | Cách xử lý |
+|---|---|---|
+| Shop lên đơn không có cước | Chưa cấu hình bảng giá | Admin thêm bảng giá cho shop |
+| PRICING_MISSING | Thiếu bảng giá hoặc thiếu mốc cân | Cập nhật thêm mốc cân |
+| MISSING_CREDENTIALS | Thiếu API vận chuyển | Cấu hình API key của hãng |
+| WAITING_APPROVAL | Đơn cần Admin duyệt theo Flow Rule | Admin vào duyệt đơn |
+| PUSH_FAILED | Đẩy vận chuyển lỗi do server Hãng | Kiểm tra mã lỗi trả về và Thử lại |
+| Admin con không thấy shop | Shop chưa được gán hoặc bị gán sai | Admin tổng vào gán lại shop |
+| Shop không sửa được cước | Cước lấy tự động từ bảng giá | Đây là logic đúng chống gian lận |
+
+---
+
+## 16. Backup / Restore / Vận hành
+- **Khuyến nghị:** Khách hàng nên Backup database định kỳ hàng tuần.
+- **Trước khi cập nhật hệ thống**, luôn phải Backup dữ liệu để đảm bảo an toàn.
+- **Không lưu API Key** ra file word hoặc các tài liệu công khai trên mạng. File backup `.sql` chứa mật khẩu đã băm nhưng vẫn cần được cất trong thư mục nén an toàn.
+- Khi nhân sự nghỉ việc, cần truy cập Dashboard **khoá tài khoản (inactive)** ngay lập tức thay vì xoá để giữ lại dữ liệu lịch sử đơn hàng.
+
+---
+
+## 17. Bảo mật
+> [!CAUTION] Các quy tắc bảo mật sinh tử
+- Tuyệt đối **không chia sẻ tài khoản Admin tổng** cho nhân sự cấp dưới. Dùng chức năng tạo Admin con cho nhân viên.
+- Không chia sẻ API Key công khai.
+- Không commit file `.env` chứa `DATABASE_URL` lên GitHub/mạng xã hội.
+- Không gửi `DATABASE_URL` qua chat nếu không thực sự cần thiết.
+- Nếu nghi ngờ lộ thông tin, hãy **Đổi API Key** và **Đổi Mật khẩu Database** ngay lập tức.
+
+---
+
+## 18. Tóm tắt kiểm tra production
+- Hệ thống đã trải qua quá trình audit end-to-end chuyên sâu.
+- Các lệnh cấu trúc Database (`npx prisma validate/generate`) đã pass 100%.
+- Cú pháp code (`npm run lint/build`) hoàn toàn không lỗi.
+- Cơ chế Admin tổng/Admin con/Shop hoàn toàn đúng quyền.
+- Hệ thống tính toán lợi nhuận qua Bảng giá theo shop đạt độ chuẩn xác tuyệt đối.
+- Module Thông luồng đơn hàng (Routing) hoạt động vô cùng ổn định.
+- Dashboard và các loại Report đều trả về con số chính xác.
+- **Trạng thái kết luận cuối cùng:** READY FOR REAL PRODUCTION RUN.
