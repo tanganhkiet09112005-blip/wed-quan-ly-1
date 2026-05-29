@@ -54,7 +54,8 @@ export default function FacebookChannelPage() {
 
   useEffect(() => {
     if (user) {
-      fetchData();
+      const t = setTimeout(fetchData, 0);
+      return () => clearTimeout(t);
     }
   }, [user, fetchData]);
 

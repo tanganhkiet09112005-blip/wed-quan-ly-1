@@ -109,13 +109,10 @@ function DonutChart({ data }) {
   const strokeWidth = size * 0.12;
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
-  let currentAngle = -90; // Start at top
-
-  const segments = data.map(item => {
+  const segments = data.reduce((acc, item) => {
     const angle = (item.value / total) * 360;
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + angle;
-    currentAngle = endAngle;
+    const startAngle = acc.currentAngle;
+    const endAngle = startAngle + angle;
 
     // Convert angles to radians
     const startRad = (startAngle * Math.PI) / 180;
@@ -136,8 +133,10 @@ function DonutChart({ data }) {
       Z
     `;
 
-    return { ...item, pathData, startAngle, endAngle };
-  });
+    acc.segments.push({ ...item, pathData, startAngle, endAngle });
+    acc.currentAngle = endAngle;
+    return acc;
+  }, { segments: [], currentAngle: -90 }).segments;
 
   return (
     <div className="donut-container">
@@ -232,10 +231,11 @@ export default function CustomerDashboard() {
 
   useEffect(() => {
     if (!user?.id) return undefined;
-    loadDashboard();
+    const t = setTimeout(loadDashboard, 0);
+    return () => clearTimeout(t);
   }, [user?.id, loadDashboard]);
 
-  const summary = dashboard?.summary || {};
+  const summary = useMemo(() => dashboard?.summary || {}, [dashboard?.summary]);
   const orders = useMemo(() => dashboard?.orders || [], [dashboard?.orders]);
   
   const posOrders = useMemo(() => orders.filter((o) => o.channel?.toLowerCase() === 'pos'), [orders]);

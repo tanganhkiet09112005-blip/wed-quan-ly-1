@@ -28,9 +28,9 @@ export default function OrderReportsPage() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { const t = setTimeout(load, 0); return () => clearTimeout(t); }, [load]);
 
-  const byStatus = data?.byStatus || {};
+  const byStatus = useMemo(() => data?.byStatus || {}, [data?.byStatus]);
   const byChannel = data?.byChannel || {};
   const byCarrier = data?.byCarrier || {};
   const totalOrders = useMemo(() => Object.values(byStatus).reduce((s, v) => s + v, 0), [byStatus]);

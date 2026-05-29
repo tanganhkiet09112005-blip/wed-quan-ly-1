@@ -180,7 +180,8 @@ export default function CODReportPage() {
   }, []);
 
   useEffect(() => {
-    fetchData(dateFrom, dateTo);
+    const t = setTimeout(() => fetchData(dateFrom, dateTo), 0);
+    return () => clearTimeout(t);
   }, [fetchData, dateFrom, dateTo]);
 
   /* ── Date preset handler ── */

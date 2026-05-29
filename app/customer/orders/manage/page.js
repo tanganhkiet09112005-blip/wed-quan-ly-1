@@ -443,6 +443,7 @@ export default function ManageOrdersPage() {
                   <th style={{ textAlign: 'right' }}>COD</th>
                   <th style={{ textAlign: 'right' }}>Phí ship</th>
                   <th style={{ textAlign: 'center' }}>Trạng thái đơn</th>
+                  <th style={{ textAlign: 'center' }}>Luồng xử lý</th>
                   <th style={{ textAlign: 'center' }}>Trạng thái COD</th>
                   <th>Ngày tạo</th>
                   <th style={{ width: '230px', textAlign: 'right' }}>Thao tác</th>
@@ -575,6 +576,23 @@ export default function ManageOrdersPage() {
                           <span className={`badge ${getStatusColor(order.status)}`} style={{ fontSize: '10.5px' }}>
                             {CUSTOM_ORDER_STATUS_LABELS[order.status] || getStatusLabel(order.status)}
                           </span>
+                        </td>
+
+                        {/* Flow Status Badge */}
+                        <td style={{ textAlign: 'center' }}>
+                          {(() => {
+                            switch (order.flowStatus) {
+                              case 'READY_TO_PUSH': return <span className="badge status-delivered" style={{ fontSize: '10.5px' }} title={order.flowMessage}>Sẵn sàng đẩy</span>;
+                              case 'WAITING_APPROVAL': return <span className="badge status-pending" style={{ fontSize: '10.5px' }} title={order.flowMessage}>Chờ duyệt</span>;
+                              case 'MANUAL_PROCESSING': return <span className="badge" style={{ background: '#fef3c7', color: '#b45309', fontSize: '10.5px' }} title={order.flowMessage}>Xử lý thủ công</span>;
+                              case 'MISSING_CREDENTIALS': return <span className="badge status-cancelled" style={{ fontSize: '10.5px' }} title={order.flowMessage}>Thiếu API</span>;
+                              case 'PRICING_MISSING': return <span className="badge status-cancelled" style={{ fontSize: '10.5px' }} title={order.flowMessage}>Thiếu Bảng giá</span>;
+                              case 'BLOCKED': return <span className="badge" style={{ background: '#111827', color: '#f3f4f6', fontSize: '10.5px' }} title={order.flowMessage}>Chặn</span>;
+                              case 'PUSHED_TO_CARRIER': return <span className="badge status-delivered" style={{ fontSize: '10.5px' }} title={order.flowMessage}>Đã đẩy ĐVVC</span>;
+                              case 'PUSH_FAILED': return <span className="badge status-cancelled" style={{ fontSize: '10.5px' }} title={order.flowMessage}>Lỗi đẩy ĐVVC</span>;
+                              default: return <span className="badge" style={{ background: '#f3f4f6', color: '#6b7280', fontSize: '10.5px' }}>Chưa phân luồng</span>;
+                            }
+                          })()}
                         </td>
 
                         {/* COD Status Badge */}

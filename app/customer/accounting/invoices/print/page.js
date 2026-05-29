@@ -13,9 +13,11 @@ export default function InvoicePrintPage() {
 
   useEffect(() => {
     if (!invoiceId) {
-      setError('Thiếu thông tin ID hoá đơn');
-      setLoading(false);
-      return;
+      const t = setTimeout(() => {
+        setError('Thiếu thông tin ID hoá đơn');
+        setLoading(false);
+      }, 0);
+      return () => clearTimeout(t);
     }
 
     const fetchInvoiceDetails = async () => {

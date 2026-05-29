@@ -30,6 +30,22 @@ function toNumber(value) {
   return Number(value);
 }
 
+const Field = ({ label, field, type = 'text', placeholder, required, hint, form, dispatch, submitting }) => (
+  <div className="form-group">
+    <label className="form-label">{label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}</label>
+    <input
+      className="form-control"
+      type={type}
+      placeholder={placeholder}
+      value={form[field]}
+      onChange={(e) => dispatch({ type: 'set', field, value: e.target.value })}
+      disabled={submitting}
+      required={required}
+    />
+    {hint && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{hint}</div>}
+  </div>
+);
+
 export default function ProductCreatePage() {
   const router = useRouter();
   const [form, dispatch] = useReducer(reducer, INIT);
@@ -94,22 +110,6 @@ export default function ProductCreatePage() {
     }
   };
 
-  const Field = ({ label, field, type = 'text', placeholder, required, hint }) => (
-    <div className="form-group">
-      <label className="form-label">{label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}</label>
-      <input
-        className="form-control"
-        type={type}
-        placeholder={placeholder}
-        value={form[field]}
-        onChange={(e) => dispatch({ type: 'set', field, value: e.target.value })}
-        disabled={submitting}
-        required={required}
-      />
-      {hint && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{hint}</div>}
-    </div>
-  );
-
   return (
     <div className="page-container">
       <div className="page-header" style={{ marginBottom: 20 }}>
@@ -139,11 +139,11 @@ export default function ProductCreatePage() {
             <div className="card">
               <div className="card-title" style={{ marginBottom: 16 }}>Thông tin sản phẩm</div>
               <div className="form-grid form-grid-2">
-                <Field label="Mã sản phẩm" field="code" placeholder="VD: AO-POLO-001" hint="Để trống nếu muốn hệ thống tự sinh mã." />
-                <Field label="Tên sản phẩm" field="name" placeholder="VD: Áo polo nam basic" required />
+                <Field label="Mã sản phẩm" field="code" placeholder="VD: AO-POLO-001" hint="Để trống nếu muốn hệ thống tự sinh mã." form={form} dispatch={dispatch} submitting={submitting} />
+                <Field label="Tên sản phẩm" field="name" placeholder="VD: Áo polo nam basic" required form={form} dispatch={dispatch} submitting={submitting} />
               </div>
               <div className="form-grid form-grid-2">
-                <Field label="Danh mục" field="category" placeholder="Áo, quần, phụ kiện..." />
+                <Field label="Danh mục" field="category" placeholder="Áo, quần, phụ kiện..." form={form} dispatch={dispatch} submitting={submitting} />
                 <div className="form-group">
                   <label className="form-label">Trạng thái</label>
                   <select className="form-control" value={form.status} onChange={(e) => dispatch({ type: 'set', field: 'status', value: e.target.value })} disabled={submitting}>
@@ -162,17 +162,17 @@ export default function ProductCreatePage() {
             <div className="card">
               <div className="card-title" style={{ marginBottom: 16 }}>SKU / biến thể đầu tiên</div>
               <div className="form-grid form-grid-2">
-                <Field label="SKU" field="sku" placeholder="VD: AO-POLO-M-DEN" hint="Để trống nếu muốn hệ thống tự sinh SKU." />
-                <Field label="Tên biến thể" field="variantName" placeholder="VD: Size M màu đen" />
+                <Field label="SKU" field="sku" placeholder="VD: AO-POLO-M-DEN" hint="Để trống nếu muốn hệ thống tự sinh SKU." form={form} dispatch={dispatch} submitting={submitting} />
+                <Field label="Tên biến thể" field="variantName" placeholder="VD: Size M màu đen" form={form} dispatch={dispatch} submitting={submitting} />
               </div>
               <div className="form-grid form-grid-2">
-                <Field label="Size" field="size" placeholder="S, M, L..." />
-                <Field label="Màu" field="color" placeholder="Đen, trắng, xanh..." />
+                <Field label="Size" field="size" placeholder="S, M, L..." form={form} dispatch={dispatch} submitting={submitting} />
+                <Field label="Màu" field="color" placeholder="Đen, trắng, xanh..." form={form} dispatch={dispatch} submitting={submitting} />
               </div>
               <div className="form-grid form-grid-3">
-                <Field label="Giá bán" field="price" type="number" placeholder="199000" required />
-                <Field label="Tồn kho" field="stockQuantity" type="number" placeholder="0" />
-                <Field label="Ngưỡng tồn thấp" field="lowStockThreshold" type="number" placeholder="5" />
+                <Field label="Giá bán" field="price" type="number" placeholder="199000" required form={form} dispatch={dispatch} submitting={submitting} />
+                <Field label="Tồn kho" field="stockQuantity" type="number" placeholder="0" form={form} dispatch={dispatch} submitting={submitting} />
+                <Field label="Ngưỡng tồn thấp" field="lowStockThreshold" type="number" placeholder="5" form={form} dispatch={dispatch} submitting={submitting} />
               </div>
             </div>
           </div>

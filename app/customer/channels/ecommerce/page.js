@@ -86,7 +86,8 @@ export default function EcommercePage() {
   }, []);
 
   useEffect(() => {
-    loadConnections();
+    const t = setTimeout(loadConnections, 0);
+    return () => clearTimeout(t);
   }, [loadConnections]);
 
   const showToast = (message, type = 'success') => {

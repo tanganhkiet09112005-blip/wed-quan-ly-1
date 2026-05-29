@@ -42,9 +42,10 @@
 Hship.vn là nền tảng quản lý bán hàng đa kênh, tích hợp trực tiếp với các đơn vị vận chuyển (J&T, GHN,...), sàn thương mại điện tử (Shopee, Lazada, TikTok) và mạng xã hội (Facebook Fanpage, Livestream). Hệ thống giúp quản lý tập trung đơn hàng, sản phẩm, tồn kho, đối soát COD và xuất hóa đơn điện tử một cách minh bạch, tách biệt giữa nhiều cửa hàng (multi-tenant).
 
 ## 2. Phân quyền người dùng
-Hệ thống chia làm 2 cấp bậc tài khoản chính:
-- **Admin (Quản trị viên hệ thống):** Nắm quyền cao nhất. Quản lý toàn bộ danh sách các cửa hàng (Shop), theo dõi số liệu tổng, giám sát hiệu suất và báo cáo COD toàn hệ thống.
-- **Customer (Chủ cửa hàng / Nhân viên Shop):** Chỉ quản lý dữ liệu thuộc về cửa hàng của mình (Khách hàng, Đơn hàng, Kho, Cấu hình API...). Các cửa hàng hoàn toàn độc lập và không thể nhìn thấy dữ liệu của nhau.
+Hệ thống chia làm 3 cấp bậc tài khoản chính:
+- **Super Admin (Admin tổng):** Nắm quyền cao nhất. Quản lý toàn bộ danh sách cửa hàng (Shop), theo dõi số liệu tổng, giám sát hiệu suất và báo cáo COD toàn hệ thống. Có quyền tạo và quản lý tài khoản Admin con, cấu hình bảng giá cước cho bất kỳ cửa hàng nào.
+- **Admin (Admin con):** Quản lý trực tiếp các cửa hàng (Shop) được Admin tổng giao phó hoặc do chính Admin con tạo ra. Có quyền cấu hình bảng giá cước cho các cửa hàng thuộc quyền quản lý của mình. Không nhìn thấy dữ liệu của cửa hàng thuộc Admin khác.
+- **Customer (Chủ cửa hàng / Nhân viên Shop):** Chỉ quản lý dữ liệu thuộc về cửa hàng của mình (Khách hàng, Đơn hàng, Kho, Cấu hình API...). Khi lên đơn, hệ thống tự động tính phí vận chuyển theo đúng bảng giá cước mà Admin đã cấu hình riêng cho cửa hàng. Các cửa hàng hoàn toàn độc lập và không thể nhìn thấy dữ liệu của nhau.
 
 ## 3. Hướng dẫn đăng nhập
 - **Truy cập:** Điền đường dẫn `https://[TÊN_MIỀN_CỦA_BẠN]/login` vào trình duyệt.
@@ -62,20 +63,33 @@ Giao diện được chia thành 3 phần chính:
 ## 5. Hướng dẫn sử dụng khu vực Admin
 *Khu vực này chỉ khả dụng khi bạn đăng nhập bằng tài khoản Admin (Đường dẫn bắt đầu bằng `/admin`).*
 
-### 5.1 Dashboard Admin
+### 5.1 Quản lý Admin con (Chỉ dành cho Super Admin)
+- Super Admin có thể tạo và quản lý các tài khoản Admin con (truy cập mục **Phân quyền > Quản lý Admin con**).
+- Admin con có thể đăng nhập vào hệ thống để quản lý các cửa hàng được phân công.
+- Super Admin có thể khóa/mở khóa tài khoản Admin con bất kỳ lúc nào.
+
+### 5.2 Dashboard Admin
 Xem tổng quan vận hành toàn nền tảng. Hiện số lượng shop hoạt động, thống kê tổng khối lượng COD và trạng thái kết nối với hãng vận chuyển.
 
-### 5.2 Quản lý Shop
+### 5.3 Quản lý Shop
 Quản lý danh sách các cửa hàng đang sử dụng. Thao tác bao gồm: Tạo mới một cửa hàng (Shop mới) và cấp tài khoản tương ứng, khóa (disable) những shop ngừng gia hạn hoặc vi phạm.
+- **Phân công Admin:** Khi tạo shop mới, Super Admin có thể chỉ định một Admin con quản lý shop đó. Admin con khi tạo shop sẽ tự động sở hữu shop đó.
+- **Lọc cửa hàng:** Super Admin có thể nhìn thấy tất cả cửa hàng, trong khi Admin con chỉ thấy các cửa hàng thuộc quyền quản lý của mình.
 
-### 5.3 Chi tiết Shop
+### 5.4 Cấu hình Bảng giá cước theo Shop
+- Tại danh sách Shop, nhấn vào nút **Bảng giá** (biểu tượng bánh răng) để thiết lập giá cước vận chuyển riêng cho cửa hàng.
+- **Thêm mốc cân:** Admin cấu hình các mức giá dựa trên trọng lượng (VD: Từ 0kg - 5kg là 22.000đ). Các mốc cân **không được chồng lấp (overlap)** lên nhau.
+- **Tự động áp dụng:** Khi cấu hình xong, mỗi khi Shop lên đơn và nhập trọng lượng, hệ thống sẽ tự động tính đúng giá cước của Shop đó. Nếu Shop chưa được cấu hình, hệ thống sẽ cảnh báo không cho tự định giá ảo.
+
+### 5.5 Chi tiết Shop
 Admin có thể xem thông số của một cửa hàng cụ thể (tại `/admin/shops/[id]`). Màn hình này hiển thị an toàn: Admin chỉ thấy các module shop đã kết nối (VD: Trạng thái Facebook, MISA là Active) nhưng **KHÔNG** thể đọc được Access Token hoặc mật khẩu của khách, đảm bảo quyền riêng tư.
+
 
 ## 6. Hướng dẫn sử dụng khu vực Customer/Shop
 *Khu vực dành cho chủ shop vận hành, đường dẫn bắt đầu bằng `/customer`.*
 
 - **Dashboard:** Bảng điều khiển trung tâm, cho thấy đơn hàng mới và doanh thu trong ngày.
-- **Đơn hàng (`/customer/orders/manage`):** Nơi tạo đơn thủ công, kiểm tra trạng thái đơn hàng đồng bộ từ các kênh và thực hiện thao tác "Đẩy đơn sang hãng vận chuyển" (như J&T).
+- **Đơn hàng (`/customer/orders/manage`):** Nơi tạo đơn thủ công, kiểm tra trạng thái đơn hàng. Khi **Tạo đơn hàng**, sau khi bạn điền Trọng lượng (kg), hệ thống sẽ tự động tính đúng Cước phí dựa trên bảng giá mà Admin đã cấu hình riêng cho bạn. Cước phí này được khóa lại để đảm bảo tính minh bạch. Nếu chưa có bảng giá, hệ thống sẽ cảnh báo yêu cầu liên hệ Admin. Bạn có thể thực hiện thao tác "Đẩy đơn sang hãng vận chuyển" (như J&T).
 - **Kho & Sản phẩm:** Tạo danh sách sản phẩm, quản lý số lượng tồn. Hệ thống tự động trừ kho khi có đơn hợp lệ và tự cộng lại kho khi hủy đơn hoặc khách trả hàng.
 - **Sàn TMĐT, Fanpage, Livestream:** Quản lý kết nối và nhận dữ liệu từ Shopee, TikTok, Facebook... (yêu cầu cấu hình token thật).
 - **Hóa đơn điện tử:** Quản lý và xuất hóa đơn GTGT cho đơn hàng (yêu cầu kết nối MISA SME hoặc VNPT).

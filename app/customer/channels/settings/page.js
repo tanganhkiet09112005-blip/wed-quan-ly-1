@@ -22,25 +22,28 @@ export default function IntegrationsSettingsPage() {
 
   useEffect(() => {
     if (user?.shopId) {
-      setLoading(true);
-      fetch('/api/integrations')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data) {
-            setForm({
-              fbPageId: data.data.fbPageId || '',
-              fbAccessToken: data.data.fbAccessToken || '',
-              pancakeToken: data.data.pancakeToken || '',
-              fbStatus: data.data.fbStatus || 'inactive',
-              misaAppId: data.data.misaAppId || '',
-              misaApiKey: data.data.misaApiKey || '',
-              misaCompanyCode: data.data.misaCompanyCode || '',
-              misaStatus: data.data.misaStatus || 'inactive',
-            });
-          }
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
+      const t = setTimeout(() => {
+        setLoading(true);
+        fetch('/api/integrations')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && data.data) {
+              setForm({
+                fbPageId: data.data.fbPageId || '',
+                fbAccessToken: data.data.fbAccessToken || '',
+                pancakeToken: data.data.pancakeToken || '',
+                fbStatus: data.data.fbStatus || 'inactive',
+                misaAppId: data.data.misaAppId || '',
+                misaApiKey: data.data.misaApiKey || '',
+                misaCompanyCode: data.data.misaCompanyCode || '',
+                misaStatus: data.data.misaStatus || 'inactive',
+              });
+            }
+            setLoading(false);
+          })
+          .catch(() => setLoading(false));
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [user]);
 

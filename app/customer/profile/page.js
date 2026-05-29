@@ -27,31 +27,34 @@ export default function ProfileSettingsPage() {
   // Fetch full details of User and Shop on mount
   useEffect(() => {
     if (user?.id) {
-      setLoading(true);
-      fetch('/api/auth/profile')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data) {
-            const u = data.data;
-            setForm({
-              name: u.name || '',
-              email: u.email || '',
-              shopName: u.shop?.name || '',
-              ownerName: u.shop?.ownerName || '',
-              phone: u.shop?.phone || '',
-              currentPassword: '',
-              newPassword: '',
-              confirmPassword: ''
-            });
-          } else {
-            setMessage({ type: 'error', text: 'Không thể tải thông tin tài khoản.' });
-          }
-          setLoading(false);
-        })
-        .catch(() => {
-          setMessage({ type: 'error', text: 'Lỗi kết nối. Không thể tải thông tin.' });
-          setLoading(false);
-        });
+      const t = setTimeout(() => {
+        setLoading(true);
+        fetch('/api/auth/profile')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && data.data) {
+              const u = data.data;
+              setForm({
+                name: u.name || '',
+                email: u.email || '',
+                shopName: u.shop?.name || '',
+                ownerName: u.shop?.ownerName || '',
+                phone: u.shop?.phone || '',
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: ''
+              });
+            } else {
+              setMessage({ type: 'error', text: 'Không thể tải thông tin tài khoản.' });
+            }
+            setLoading(false);
+          })
+          .catch(() => {
+            setMessage({ type: 'error', text: 'Lỗi kết nối. Không thể tải thông tin.' });
+            setLoading(false);
+          });
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [user]);
 

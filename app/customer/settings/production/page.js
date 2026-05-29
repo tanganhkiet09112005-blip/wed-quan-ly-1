@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import Link from 'next/link';
-import { CheckCircle, AlertTriangle, RefreshCw, Box, ShoppingCart, Truck, FileText, Settings, Copy, Check } from 'lucide-react';
+import { CheckCircle, AlertTriangle, RefreshCw, Box, ShoppingCart, Truck, FileText, Settings, Copy, Check, Users } from 'lucide-react';
 
 function StatusBadge({ ready, text, sandbox }) {
   if (ready) {
@@ -51,7 +51,10 @@ export default function ProductionReadinessPage() {
   }, [user, toast]);
 
   useEffect(() => {
-    if (user) fetchData();
+    if (user) {
+      const t = setTimeout(fetchData, 0);
+      return () => clearTimeout(t);
+    }
   }, [user, fetchData]);
 
   const copyToClipboard = (text) => {

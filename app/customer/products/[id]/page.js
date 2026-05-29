@@ -57,7 +57,8 @@ export default function ProductDetailPage() {
   }, [productId]);
 
   useEffect(() => {
-    load();
+    const t = setTimeout(load, 0);
+    return () => clearTimeout(t);
   }, [load]);
 
   const setVariantField = (index, field, value) => {

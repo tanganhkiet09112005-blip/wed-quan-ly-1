@@ -4,6 +4,38 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AlertCircle, RefreshCw, Save, Settings, ToggleLeft, ToggleRight, Wrench } from 'lucide-react';
 
+const Toggle = ({ field, label, hint, settings, update, loading, saving }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px 0', borderBottom: '1px solid var(--border-light)' }}>
+    <div>
+      <div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>
+      {hint && <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 3 }}>{hint}</div>}
+    </div>
+    <button
+      type="button"
+      onClick={() => update(field, !settings?.[field])}
+      disabled={loading || saving}
+      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, marginLeft: 16 }}
+    >
+      {settings?.[field]
+        ? <ToggleRight size={28} color="var(--primary)" />
+        : <ToggleLeft size={28} color="#94a3b8" />}
+    </button>
+  </div>
+);
+
+const Textarea = ({ field, label, hint, placeholder, settings, update, loading, saving }) => (
+  <div className="form-group">
+    <label className="form-label">{label}</label>
+    <textarea
+      className="form-control" rows={3} placeholder={placeholder}
+      value={settings?.[field] || ''}
+      onChange={(e) => update(field, e.target.value)}
+      disabled={loading || saving}
+    />
+    {hint && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{hint}</div>}
+  </div>
+);
+
 export default function BotSettingsPage() {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,38 +86,6 @@ export default function BotSettingsPage() {
       setSaving(false);
     }
   };
-
-  const Toggle = ({ field, label, hint }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px 0', borderBottom: '1px solid var(--border-light)' }}>
-      <div>
-        <div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>
-        {hint && <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 3 }}>{hint}</div>}
-      </div>
-      <button
-        type="button"
-        onClick={() => update(field, !settings?.[field])}
-        disabled={loading || saving}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, marginLeft: 16 }}
-      >
-        {settings?.[field]
-          ? <ToggleRight size={28} color="var(--primary)" />
-          : <ToggleLeft size={28} color="#94a3b8" />}
-      </button>
-    </div>
-  );
-
-  const Textarea = ({ field, label, hint, placeholder }) => (
-    <div className="form-group">
-      <label className="form-label">{label}</label>
-      <textarea
-        className="form-control" rows={3} placeholder={placeholder}
-        value={settings?.[field] || ''}
-        onChange={(e) => update(field, e.target.value)}
-        disabled={loading || saving}
-      />
-      {hint && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>{hint}</div>}
-    </div>
-  );
 
   return (
     <div className="page-container">
@@ -139,11 +139,13 @@ export default function BotSettingsPage() {
                 field="botEnabled"
                 label="Bật bot chatbot"
                 hint="Bot sẽ xử lý comment và tin nhắn từ Fanpage/Livestream"
+                settings={settings} update={update} loading={loading} saving={saving}
               />
               <Toggle
                 field="autoReply"
                 label="Tự động trả lời"
                 hint="Bot tự gửi tin nhắn hỏi thông tin còn thiếu mà không cần xác nhận từ shop"
+                settings={settings} update={update} loading={loading} saving={saving}
               />
             </>
           )}
@@ -168,24 +170,28 @@ export default function BotSettingsPage() {
                 label="Tin nhắn chào mừng"
                 placeholder="Ví dụ: Xin chào! Cảm ơn bạn đã quan tâm. Shop hỗ trợ bạn gì ạ?"
                 hint="Gửi khi khách lần đầu nhắn tin"
+                settings={settings} update={update} loading={loading} saving={saving}
               />
               <Textarea
                 field="missingPhoneMessage"
                 label="Hỏi số điện thoại"
                 placeholder="Ví dụ: Bạn ơi, cho shop xin số điện thoại để xác nhận đơn nha!"
                 hint="Gửi khi bot chưa bắt được SĐT từ comment"
+                settings={settings} update={update} loading={loading} saving={saving}
               />
               <Textarea
                 field="missingAddressMessage"
                 label="Hỏi địa chỉ giao hàng"
                 placeholder="Ví dụ: Bạn vui lòng cho shop địa chỉ giao hàng nhé!"
                 hint="Gửi khi bot chưa bắt được địa chỉ"
+                settings={settings} update={update} loading={loading} saving={saving}
               />
               <Textarea
                 field="orderConfirmMessage"
                 label="Xác nhận đơn hàng"
                 placeholder="Ví dụ: Đơn hàng của bạn đã được xác nhận! Shop sẽ đóng gói và gửi hàng ngay."
                 hint="Gửi khi shop confirm đơn"
+                settings={settings} update={update} loading={loading} saving={saving}
               />
             </>
           )}

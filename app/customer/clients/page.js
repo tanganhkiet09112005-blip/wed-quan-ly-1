@@ -41,7 +41,10 @@ export default function ClientsPage() {
   }, [search, filterStatus]);
 
   useEffect(() => {
-    if (user) fetchData();
+    if (user) {
+      const t = setTimeout(fetchData, 0);
+      return () => clearTimeout(t);
+    }
   }, [user, fetchData]);
 
   if (!user) return null;

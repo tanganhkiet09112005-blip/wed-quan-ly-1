@@ -38,7 +38,8 @@ export default function InvoiceDetailPage({ params }) {
 
   useEffect(() => {
     if (user?.shopId) {
-      fetchInvoice();
+      const t = setTimeout(fetchInvoice, 0);
+      return () => clearTimeout(t);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.shopId]);

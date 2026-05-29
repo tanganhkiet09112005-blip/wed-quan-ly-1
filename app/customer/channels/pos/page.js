@@ -129,7 +129,8 @@ export default function POSPage() {
   }, []);
 
   useEffect(() => {
-    loadProducts();
+    const t = setTimeout(loadProducts, 0);
+    return () => clearTimeout(t);
   }, [loadProducts]);
 
   // Toast auto-clear

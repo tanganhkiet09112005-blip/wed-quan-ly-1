@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getScopedShopId, isAdmin, requireShopOrAdmin } from '@/lib/server/auth';
 import { jsonError, serverError } from '@/lib/server/responses';
+import { determineOrderFlow } from '@/lib/server/flow-engine';
 import {
   calculateOrderTotal,
   applyInventoryRuleForOrderStatus,
@@ -197,17 +198,63 @@ export async function POST(request) {
       const customerResult = await resolveOrderCustomer(tx, scopedShopId, body);
       if (customerResult.error) throw new Error(customerResult.error);
 
+      // Fetch contexts for flow engine
+      const shop = await tx.shop.findUnique({ where: { id: scopedShopId } });
+      const customer = await tx.customer.findUnique({ where: { id: customerResult.customerId } });
+      const carrierCredentials = await tx.shopShipper.findMany({ where: { shopId: scopedShopId, status: 'active' } });
+      const rules = await tx.orderFlowRule.findMany({ where: { shopId: scopedShopId, isActive: true }, orderBy: { priority: 'asc' } });
+      
+      // Verify Pricing
+      let pricingResult = null;
+      let finalShippingFee = body.shippingFee ? Number(body.shippingFee) : 0;
+      let finalAppliedTierId = body.appliedRateTierId || null;
+
+      const rate = await tx.shopShippingRate.findFirst({
+        where: { shopId: scopedShopId, isActive: true },
+        include: { tiers: { orderBy: { minWeight: 'asc' } } }
+      });
+
+      if (rate && rate.tiers.length > 0) {
+        if (!body.weight || isNaN(Number(body.weight)) || Number(body.weight) < 0) {
+          pricingResult = { hasRate: false };
+        } else {
+          const weight = Number(body.weight);
+          const matchedTier = rate.tiers.find(t => weight >= t.minWeight && weight <= t.maxWeight);
+          if (matchedTier) {
+            pricingResult = { hasRate: true, fee: matchedTier.price, tierId: matchedTier.id };
+            finalShippingFee = matchedTier.price;
+            finalAppliedTierId = matchedTier.id;
+          } else {
+            pricingResult = { hasRate: false };
+          }
+        }
+      } else {
+        // No active rate plan configured for shop
+        pricingResult = { hasRate: false };
+      }
+
+      // Determine Flow
+      const flowInfo = determineOrderFlow({
+        orderInput: body,
+        shop,
+        customer,
+        pricingResult,
+        carrierCredentials,
+        rules
+      });
+
       const createdOrder = await tx.order.create({
         data: {
           code: generateOrderCode(),
           shippingName: body.shippingName.trim(),
           shippingPhone: body.shippingPhone.trim(),
           shippingAddress: body.shippingAddress.trim(),
-          shipperCode: body.shipperCode || null,
           channel: body.channel || 'direct',
           codAmount,
-          shippingFee: body.shippingFee ? Number(body.shippingFee) : 0,
-          carrierFee: body.shippingFee ? Number(body.shippingFee) : 0,
+          shippingFee: finalShippingFee,
+          carrierFee: finalShippingFee,
+          weight: body.weight ? Number(body.weight) : null,
+          appliedRateTierId: finalAppliedTierId,
           totalValue: nextTotalValue,
           note: body.note || null,
           customerId: customerResult.customerId,
@@ -215,46 +262,85 @@ export async function POST(request) {
           status: 'pending',
           codStatus: 'pending',
           items: { create: normalizedItems },
+          
+          // Flow fields
+          flowStatus: flowInfo.flowStatus,
+          flowMessage: flowInfo.flowMessage,
+          flowRuleId: flowInfo.flowRuleId,
+          carrierCode: flowInfo.carrierCode,
+          carrierStatus: null
         },
         include: getOrderInclude(isAdmin(user)),
       });
 
-      await applyInventoryRuleForOrderStatus(tx, createdOrder.id, createdOrder.status, 'Tru ton khi tao don');
-      return tx.order.findUnique({
-        where: { id: createdOrder.id },
-        include: getOrderInclude(isAdmin(user)),
+      // Log the flow
+      await tx.orderFlowLog.create({
+        data: {
+          orderId: createdOrder.id,
+          toStatus: flowInfo.flowStatus,
+          message: flowInfo.flowMessage,
+          actorUserId: user.id
+        }
       });
+
+      await applyInventoryRuleForOrderStatus(tx, createdOrder.id, createdOrder.status, 'Tru ton khi tao don');
+      
+      return { order: createdOrder, shop, flowInfo };
     });
 
+    // Auto-push logic if enabled and ready
     let carrierResult = null;
-    if (body.shipperCode) {
+    let finalOrder = orderResult.order;
+    
+    if (orderResult.flowInfo.flowStatus === 'READY_TO_PUSH' && orderResult.shop?.autoPushCarrierEnabled && orderResult.flowInfo.carrierCode) {
       const { pushOrderToCarrier } = await import('@/lib/carriers/index');
-      carrierResult = await pushOrderToCarrier(body.shipperCode, {
-        ...order,
+      carrierResult = await pushOrderToCarrier(orderResult.flowInfo.carrierCode, {
+        ...finalOrder,
         shopId: scopedShopId,
         items: normalizedItems,
       });
 
       if (carrierResult?.success && carrierResult.trackingCode) {
-        order = await prisma.order.update({
-          where: { id: order.id },
+        finalOrder = await prisma.order.update({
+          where: { id: finalOrder.id },
           data: {
             trackingCode: carrierResult.trackingCode,
-            shippingFee: carrierResult.fee || Number(body.shippingFee) || 0,
-            carrierFee: carrierResult.fee || Number(body.shippingFee) || 0,
+            shippingFee: carrierResult.fee || finalOrder.shippingFee,
+            carrierFee: carrierResult.fee || finalOrder.carrierFee,
             carrierName: carrierResult.carrierName || null,
             status: 'pushed_to_carrier',
             codStatus: 'collecting',
+            flowStatus: 'PUSHED_TO_CARRIER',
+            pushedAt: new Date()
+          },
+          include: getOrderInclude(isAdmin(user)),
+        });
+
+        await prisma.orderFlowLog.create({
+          data: {
+            orderId: finalOrder.id,
+            fromStatus: 'READY_TO_PUSH',
+            toStatus: 'PUSHED_TO_CARRIER',
+            message: 'Tự động đẩy đơn qua vận chuyển.',
+            actorUserId: user.id
+          }
+        });
+      } else {
+         finalOrder = await prisma.order.update({
+          where: { id: finalOrder.id },
+          data: {
+            flowStatus: 'PUSH_FAILED',
+            pushError: carrierResult?.error || 'Lỗi không xác định khi đẩy đơn.'
           },
           include: getOrderInclude(isAdmin(user)),
         });
       }
     }
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       message: 'Tao don hang thanh cong.',
-      data: normalizeOrderForResponse(order),
+      data: normalizeOrderForResponse(finalOrder),
       carrier: carrierResult,
     }, { status: 201 });
   } catch (error) {

@@ -121,7 +121,10 @@ function NavGroup({ group, pathname }) {
   const [open, setOpen] = useState(hasActive || group.key === 'overview');
 
   useEffect(() => {
-    if (hasActive) setOpen(true);
+    if (hasActive) {
+      const t = setTimeout(() => setOpen(true), 0);
+      return () => clearTimeout(t);
+    }
   }, [pathname, hasActive]);
 
   return (

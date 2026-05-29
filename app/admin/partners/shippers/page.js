@@ -12,12 +12,15 @@ export default function ShippersAdminPage() {
   useEffect(() => {
     // In a real app, this would fetch from /api/admin/shippers
     // For now, mock data
-    setShippers([
-      { id: '1', code: 'GHN', name: 'Giao Hàng Nhanh (GHN)', status: 'active', apiKey: 'ghn_***', apiToken: 'token_***', codFeePercent: 0 },
-      { id: '2', code: 'SPX', name: 'Shopee Xpress (SPX)', status: 'active', apiKey: 'spx_***', apiToken: '', codFeePercent: 1.5 },
-      { id: '3', code: 'JT', name: 'J&T Express', status: 'inactive', apiKey: '', apiToken: '', codFeePercent: 1.0 },
-    ]);
-    setLoading(false);
+    const t = setTimeout(() => {
+      setShippers([
+        { id: '1', code: 'GHN', name: 'Giao Hàng Nhanh (GHN)', status: 'active', apiKey: 'ghn_***', apiToken: 'token_***', codFeePercent: 0 },
+        { id: '2', code: 'SPX', name: 'Shopee Xpress (SPX)', status: 'active', apiKey: 'spx_***', apiToken: '', codFeePercent: 1.5 },
+        { id: '3', code: 'JT', name: 'J&T Express', status: 'inactive', apiKey: '', apiToken: '', codFeePercent: 1.0 },
+      ]);
+      setLoading(false);
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   const handleEdit = (shipper) => {

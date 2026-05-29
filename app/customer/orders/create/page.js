@@ -1,8 +1,9 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/lib/toast-context';
+import { useAuth } from '@/lib/auth-context';
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(value || 0);
@@ -18,6 +19,7 @@ function OrderForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     customerName: searchParams.get('customerName') || '',
@@ -26,6 +28,7 @@ function OrderForm() {
     shipperCode: 'GHN',
     codAmount: '',
     shippingFee: '',
+    weight: '', // kg
     note: '',
     channel: searchParams.get('customerName') ? 'fanpage' : 'direct',
     products: [{ name: searchParams.get('product') || '', qty: 1, price: searchParams.get('price') || '' }],
@@ -40,6 +43,12 @@ function OrderForm() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Shipping rate state
+  const [rateInfo, setRateInfo] = useState(null); // { hasRate, fee, tierId, tier, message }
+  const [rateFetching, setRateFetching] = useState(false);
+  const [rateError, setRateError] = useState('');
+  const [feeFromRate, setFeeFromRate] = useState(false); // true = fee auto-set from rate, locked
+
   useEffect(() => {
     Promise.all([
       fetch('/api/customers').then((res) => res.json()).catch(() => null),
@@ -51,6 +60,57 @@ function OrderForm() {
       if (productJson?.success) setCatalog(productJson.data?.items || []);
     });
   }, []);
+
+  // Auto-calculate shipping fee when weight changes
+  const fetchShippingFee = useCallback(async (weightValue) => {
+    const shopId = user?.shopId;
+    if (!shopId) return; // Admin creating order may not have shopId
+    const weight = parseFloat(weightValue);
+    if (isNaN(weight) || weight < 0) {
+      setRateInfo(null);
+      setRateError('');
+      setFeeFromRate(false);
+      return;
+    }
+    setRateFetching(true);
+    setRateError('');
+    try {
+      const res = await fetch(`/api/shops/${shopId}/calculate-fee?weight=${weight}`);
+      const json = await res.json();
+      if (json.success) {
+        const data = json.data;
+        setRateInfo(data);
+        if (data.hasRate && data.fee !== null) {
+          setForm(f => ({ ...f, shippingFee: String(data.fee) }));
+          setFeeFromRate(true);
+        } else {
+          setFeeFromRate(false);
+          if (data.hasRate === false) {
+            setRateError('Shop chưa được cấu hình bảng giá cước. Vui lòng nhập cước thủ công hoặc liên hệ Admin.');
+          } else if (data.message) {
+            setRateError(data.message);
+          }
+        }
+      }
+    } catch {
+      setRateError('Không thể tính cước tự động.');
+    } finally {
+      setRateFetching(false);
+    }
+  }, [user?.shopId]);
+
+  const handleWeightChange = (value) => {
+    setForm(f => ({ ...f, weight: value }));
+    if (value.trim() === '') {
+      setRateInfo(null);
+      setRateError('');
+      setFeeFromRate(false);
+      return;
+    }
+    // Debounce: wait 400ms
+    clearTimeout(window._weightTimer);
+    window._weightTimer = setTimeout(() => fetchShippingFee(value), 400);
+  };
 
   const catalogOptions = useMemo(() => catalog.flatMap((product) => (
     (product.variants || []).filter((variant) => variant.status !== 'inactive').map((variant) => {
@@ -218,6 +278,8 @@ function OrderForm() {
           channel: form.channel,
           codAmount: selectedCod,
           shippingFee: form.shippingFee ? Number(form.shippingFee) : undefined,
+          weight: form.weight ? Number(form.weight) : undefined,
+          appliedRateTierId: feeFromRate && rateInfo?.tierId ? rateInfo.tierId : undefined,
           note: form.note,
           customerId: form.customerId || null,
           items: form.products.map((item) => ({
@@ -238,8 +300,17 @@ function OrderForm() {
       });
       const data = await res.json();
       if (data.success) {
+        if (data.data.flowStatus === 'MISSING_CREDENTIALS') {
+          toast.warning('Tạo đơn thành công nhưng thiếu API Vận chuyển. Chờ Admin xử lý.');
+        } else if (data.data.flowStatus === 'WAITING_APPROVAL') {
+          toast.success('Tạo đơn thành công. Đang chờ Admin duyệt.');
+        } else if (data.data.flowStatus === 'PRICING_MISSING') {
+          toast.warning('Tạo đơn thành công nhưng thiếu Bảng giá cước. Chờ Admin xử lý.');
+        } else {
+          toast.success('Tạo đơn hàng thành công!');
+        }
         setSavedCode(data.data.code);
-        setTimeout(() => router.push('/customer/orders/manage'), 1200);
+        setTimeout(() => router.push('/customer/orders/manage'), 1500);
       } else {
         toast.error(data.error || 'Không thể tạo đơn hàng.');
         setErrors(data.errors || {});

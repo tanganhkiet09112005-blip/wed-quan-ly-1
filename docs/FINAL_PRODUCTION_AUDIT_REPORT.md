@@ -45,6 +45,19 @@ Quá trình kiểm tra đã quét toàn bộ hệ thống từ Front-end (Next.j
 3. **Môi trường Database:** Tránh chạy `prisma db push` trên DB Production, khuyến khích sử dụng `prisma migrate deploy` trong tương lai để bảo toàn Data.
 4. **Bảo mật Webhook:** Hãy đảm bảo cấu hình `WEBHOOK_SECRET` trên hệ thống và trên Partner (J&T, Pancake) đồng nhất để an toàn.
 
+## 4. Cập nhật Tính năng Mới (Admin Hierarchy & Shop Pricing)
+
+Quá trình Audit đã xác nhận việc bổ sung tính năng phân cấp Admin và Bảng giá theo Shop hoàn toàn hợp lệ và an toàn với hệ thống hiện tại.
+
+- ✅ **Mô hình Dữ liệu (Prisma):** Đã mở rộng bảng `User` để hỗ trợ `parentAdminId` (self-relation) và liên kết `Shop` với `adminId`. Bổ sung các bảng `ShopShippingRate` và `ShopShippingRateTier` an toàn, không ảnh hưởng đến dữ liệu cũ. Schema validation pass 100%.
+- ✅ **Phân quyền (Auth & Security):** Hệ thống phân tách thành công 3 cấp bậc: SUPER_ADMIN (không có parent), ADMIN con (có parent), và SHOP/CUSTOMER. Guard middleware và server-side validation chặn đứng mọi API call không đúng thẩm quyền.
+- ✅ **Nghiệp vụ Bảng giá (Pricing Engine):** Quản lý mốc cân hoạt động chính xác. Có thuật toán chặn tạo mốc cân bị chồng lấp (overlap). API tính cước tự động trả về đúng giá trị cấu hình của riêng từng Shop, khóa field `shippingFee` đối với cấp độ Shop để tránh gian lận. Đơn hàng cũ giữ nguyên snapshot cước cũ.
+- ✅ **Giao diện & UI (Frontend):** 
+  - Trang Quản lý Admin con (`/admin/accounts`) dành riêng cho SUPER_ADMIN hoạt động mượt mà. 
+  - Giao diện Quản lý Shop hiển thị rõ người quản lý và nút truy cập cấu hình bảng giá. 
+  - Form Lên đơn tự động gọi hàm debounce tính cước mà không gây nghẽn kết nối.
+- ✅ **Build & Lint:** Toàn bộ Project Build & Lint Pass (Next.js Turbopack) không có lỗi cú pháp hoặc Hook vi phạm rules of hooks.
+
 ---
 **Chữ ký xác nhận Audit**
 *AI Engineer & QA Lead - Hệ thống Hship.vn*

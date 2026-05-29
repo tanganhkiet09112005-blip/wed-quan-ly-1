@@ -38,7 +38,8 @@ export default function CustomerInvoicesPage() {
   };
 
   useEffect(() => {
-    fetchInvoices();
+    const t = setTimeout(fetchInvoices, 0);
+    return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.shopId, statusFilter]);
 

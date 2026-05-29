@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 import {
   AlertCircle,
   Building2,
@@ -12,8 +13,10 @@ import {
   PlusCircle,
   RefreshCw,
   Search,
+  Settings,
   Store,
   X,
+  GitMerge,
 } from 'lucide-react';
 
 /* ─── Formatters ─────────────────────────────── */
@@ -24,7 +27,7 @@ const fmtDate = (v) =>
   v ? new Date(v).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
 
 /* ─── Form initial state + reducer ──────────────── */
-const FORM_INIT = { code: '', name: '', ownerName: '', email: '', phone: '', password: 'shop123', status: 'active' };
+const FORM_INIT = { code: '', name: '', ownerName: '', email: '', phone: '', password: '', status: 'active', adminId: '' };
 function formReducer(state, action) {
   if (action.type === 'reset') return { ...FORM_INIT, code: action.suggestedCode || '' };
   if (action.type === 'set') return { ...state, [action.field]: action.value };
@@ -35,8 +38,14 @@ function formReducer(state, action) {
 const STATUS_LABEL = { active: 'Hoạt động', inactive: 'Tạm khóa' };
 const STATUS_CLS = { active: 'status-delivered', inactive: 'status-cancelled' };
 
+// helper: check if current user is super admin
+function isSuperAdmin(user) {
+  return user?.role === 'admin' && !user?.parentAdminId;
+}
+
 /* ─── Main component ─────────────────────────── */
 export default function ShopsManagementPage() {
+  const { user } = useAuth();
   const [shops, setShops] = useState([]);      // from /api/dashboard (has order aggregates)
   const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
@@ -45,6 +54,9 @@ export default function ShopsManagementPage() {
   // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Sub-admins (for assignment dropdown, super_admin only)
+  const [subAdmins, setSubAdmins] = useState([]);
 
   // Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -74,6 +86,15 @@ export default function ShopsManagementPage() {
   }, []);
 
   useEffect(() => { const t = setTimeout(loadShops, 0); return () => clearTimeout(t); }, [loadShops]);
+
+  // Load sub-admins for assignment dropdown (super_admin only)
+  useEffect(() => {
+    if (!isSuperAdmin(user)) return;
+    fetch('/api/admin/accounts')
+      .then(r => r.json())
+      .then(json => { if (json.success) setSubAdmins(json.data || []); })
+      .catch(() => {});
+  }, [user]);
 
   /* ── Filtered shops ── */
   const filtered = useMemo(() => {
@@ -130,18 +151,22 @@ export default function ShopsManagementPage() {
 
     setSubmitting(true);
     try {
+      const payload = {
+        code: form.code.trim().toUpperCase(),
+        name: form.name.trim(),
+        ownerName: form.ownerName.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.trim(),
+        password: form.password,
+        status: form.status,
+      };
+      // Only super_admin can assign to sub-admin
+      if (isSuperAdmin(user) && form.adminId) payload.adminId = form.adminId;
+
       const res = await fetch('/api/shops', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: form.code.trim().toUpperCase(),
-          name: form.name.trim(),
-          ownerName: form.ownerName.trim(),
-          email: form.email.trim().toLowerCase(),
-          phone: form.phone.trim(),
-          password: form.password,
-          status: form.status,
-        }),
+        body: JSON.stringify(payload),
       });
       const result = await res.json();
       if (res.ok && result.success) {
@@ -270,6 +295,7 @@ export default function ShopsManagementPage() {
                 <th>Tên shop</th>
                 <th>Chủ sở hữu</th>
                 <th>Email / SĐT</th>
+                <th>Admin quản lý</th>
                 <th style={{ textAlign: 'right' }}>Số đơn</th>
                 <th style={{ textAlign: 'right' }}>COD chờ thu</th>
                 <th style={{ textAlign: 'right' }}>COD đã thu</th>
@@ -284,14 +310,14 @@ export default function ShopsManagementPage() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    {Array.from({ length: 12 }).map((__, j) => (
+                    {Array.from({ length: 13 }).map((__, j) => (
                       <td key={j}><div className="skeleton" style={{ height: 16, borderRadius: 4 }} /></td>
                     ))}
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={12} style={{ padding: 0 }}>
+                  <td colSpan={13} style={{ padding: 0 }}>
                     <div className="empty-state" style={{ padding: '44px 20px' }}>
                       <div className="empty-state-icon"><Store size={28} /></div>
                       <h3>{shops.length === 0 ? 'Chưa có shop nào trong hệ thống' : 'Không tìm thấy shop phù hợp'}</h3>
@@ -333,6 +359,13 @@ export default function ShopsManagementPage() {
                     <td>
                       <div style={{ fontSize: 13 }}>{shop.email}</div>
                       <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{shop.phone}</div>
+                    </td>
+
+                    {/* Admin */}
+                    <td style={{ fontSize: 12 }}>
+                      {shop.admin
+                        ? <span style={{ fontWeight: 600 }}>{shop.admin.name}</span>
+                        : <span style={{ color: 'var(--text-muted)' }}>Super Admin</span>}
                     </td>
 
                     {/* Order count */}
@@ -387,6 +420,22 @@ export default function ShopsManagementPage() {
                           style={{ fontSize: '11.5px', padding: '4px 8px', gap: 4, display: 'inline-flex', alignItems: 'center' }}
                         >
                           <Eye size={12} /> Chi tiết
+                        </Link>
+                        <Link
+                          href={`/admin/shops/${shop.id}/pricing`}
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: '11.5px', padding: '4px 8px', gap: 4, display: 'inline-flex', alignItems: 'center' }}
+                          title="Cấu hình bảng giá cước"
+                        >
+                          <Settings size={12} /> Bảng giá
+                        </Link>
+                        <Link
+                          href={`/admin/shops/${shop.id}/flow-rules`}
+                          className="btn btn-secondary btn-sm"
+                          style={{ fontSize: '11.5px', padding: '4px 8px', gap: 4, display: 'inline-flex', alignItems: 'center' }}
+                          title="Cấu hình phân luồng đơn hàng"
+                        >
+                          <GitMerge size={12} /> Phân luồng
                         </Link>
                       </div>
                     </td>
@@ -540,6 +589,24 @@ export default function ShopsManagementPage() {
                   </select>
                 </div>
               </div>
+
+              {/* Row 5: Admin assignment (SUPER_ADMIN only) */}
+              {isSuperAdmin(user) && (
+                <div className="form-group">
+                  <label className="form-label">Giao cho Admin con <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 400 }}>(bỏ trống = thuộc Super Admin)</span></label>
+                  <select
+                    className="form-control"
+                    value={form.adminId}
+                    onChange={(e) => dispatch({ type: 'set', field: 'adminId', value: e.target.value })}
+                    disabled={submitting}
+                  >
+                    <option value="">-- Super Admin quản lý --</option>
+                    {subAdmins.filter(a => a.status === 'active').map(a => (
+                      <option key={a.id} value={a.id}>{a.name} ({a.email})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => !submitting && setModalOpen(false)} disabled={submitting}>

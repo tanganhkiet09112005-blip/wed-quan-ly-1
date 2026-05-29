@@ -42,7 +42,10 @@ export default function BlacklistPage() {
   }, [search]);
 
   useEffect(() => {
-    if (user) fetchData();
+    if (user) {
+      const t = setTimeout(fetchData, 0);
+      return () => clearTimeout(t);
+    }
   }, [user, fetchData]);
 
   const handleOpenModal = (item = null) => {

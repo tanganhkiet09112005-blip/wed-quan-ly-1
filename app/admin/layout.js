@@ -5,12 +5,26 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 
-const navItems = [
+// Helper to check if user is super admin (role=admin, no parentAdminId)
+function isSuperAdmin(user) {
+  return user?.role === 'admin' && !user?.parentAdminId;
+}
+
+const BASE_NAV = [
   {
     section: 'QUẢN TRỊ NỀN TẢNG',
     items: [
-      { href: '/admin/dashboard', label: 'Dashboard hệ thống', icon: '▣' },
+      { href: '/admin/dashboard', label: 'Tổng quan', icon: '▣' },
       { href: '/admin/shops', label: 'Quản lý shop', icon: '◎' },
+    ],
+  },
+];
+
+const SUPER_ADMIN_NAV = [
+  {
+    section: 'PHÂN QUYỀN',
+    items: [
+      { href: '/admin/accounts', label: 'Quản lý Admin con', icon: '👤' },
     ],
   },
 ];
@@ -33,9 +47,15 @@ export default function AdminLayout({ children }) {
     router.push('/login');
   };
 
-  const currentPage = navItems
-    .flatMap((section) => section.items)
-    .find((item) => pathname.startsWith(item.href)) || { label: 'Admin Portal' };
+  // Build nav based on role
+  const navItems = isSuperAdmin(user)
+    ? [...BASE_NAV, ...SUPER_ADMIN_NAV]
+    : BASE_NAV;
+
+  const allItems = navItems.flatMap((section) => section.items);
+  const currentPage = allItems.find((item) => pathname.startsWith(item.href)) || { label: 'Admin Portal' };
+
+  const roleLabel = isSuperAdmin(user) ? 'Super Admin (Oxi)' : 'Admin con';
 
   return (
     <div className="main-layout">
@@ -82,14 +102,14 @@ export default function AdminLayout({ children }) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="user-name truncate">{user.name}</div>
-              <div className="user-role">Quản trị nền tảng</div>
+              <div className="user-role">{roleLabel}</div>
             </div>
             <span style={{ color: '#94a3b8', fontSize: 12 }}>Thoát</span>
           </button>
         </div>
       </aside>
 
-      {/* Topbar — Dark Navy */}
+      {/* Topbar */}
       <header className="main-header">
         <div className="header-left">
           <div className="breadcrumb">
@@ -98,6 +118,15 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
         <div className="header-right">
+          {isSuperAdmin(user) && (
+            <span style={{
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: 'white', padding: '2px 8px', borderRadius: 5,
+              fontSize: 10, fontWeight: 700, marginRight: 8,
+            }}>
+              SUPER ADMIN
+            </span>
+          )}
           <button
             type="button"
             className="header-btn"

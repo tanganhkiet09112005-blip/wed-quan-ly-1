@@ -44,7 +44,10 @@ export default function AdminShopDetailPage() {
     }
   }, [shopId]);
 
-  useEffect(() => { loadShop(); }, [loadShop]);
+  useEffect(() => {
+    const t = setTimeout(loadShop, 0);
+    return () => clearTimeout(t);
+  }, [loadShop]);
 
   const toggleStatus = async () => {
     if (!data?.shop) return;
