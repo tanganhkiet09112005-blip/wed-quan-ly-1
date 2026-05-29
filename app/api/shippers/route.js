@@ -3,14 +3,33 @@ import { getScopedShopId, isAdmin, requireShopOrAdmin } from '@/lib/server/auth'
 import { jsonError, jsonSuccess, serverError } from '@/lib/server/responses';
 import { maskSecret, prepareSecretForUpdate } from '@/lib/server/secrets';
 
+function safeMaskJSON(secretStr) {
+  if (!secretStr) return '';
+  const str = String(secretStr);
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(str);
+      for (const k in parsed) {
+        if (typeof parsed[k] === 'string' && parsed[k].length > 0) {
+          parsed[k] = parsed[k].length > 4 ? `****${parsed[k].slice(-4)}` : '****';
+        }
+      }
+      return JSON.stringify(parsed);
+    } catch {
+      // fallback
+    }
+  }
+  return maskSecret(str);
+}
+
 function maskShipperConfig(shipper, config = null) {
   const source = config || shipper;
   return {
     ...shipper,
-    apiKey: maskSecret(source.apiKey),
-    apiToken: maskSecret(source.apiToken),
-    apiKeyMasked: maskSecret(source.apiKey),
-    apiTokenMasked: maskSecret(source.apiToken),
+    apiKey: safeMaskJSON(source.apiKey),
+    apiToken: safeMaskJSON(source.apiToken),
+    apiKeyMasked: safeMaskJSON(source.apiKey),
+    apiTokenMasked: safeMaskJSON(source.apiToken),
     codFeePercent: config ? config.codFeePercent : shipper.codFeePercent,
     status: config ? config.status : shipper.status,
     mode: config ? config.mode : 'mock',

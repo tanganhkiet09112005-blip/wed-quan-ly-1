@@ -54,7 +54,6 @@ export async function POST(request) {
         : 'https://dev-online-gateway.ghn.vn/shiip/public-api/v2';
 
       try {
-        // Gọi thử API lấy danh sách shop của GHN để kiểm định Token
         const res = await fetch(`${baseUrl}/shop/all`, {
           method: 'POST',
           headers: {
@@ -66,7 +65,6 @@ export async function POST(request) {
 
         const data = await res.json();
         if (res.status === 200 && data.code === 200) {
-          // Token đúng, kiểm tra tiếp xem Shop ID (apiKey) có khớp không (nếu có nhập Shop ID)
           if (realApiKey) {
             const shopList = data.data?.shops || [];
             const hasShop = shopList.some(s => String(s._id) === String(realApiKey));
@@ -80,6 +78,24 @@ export async function POST(request) {
         }
       } catch (err) {
         return jsonError(`Không thể kết nối tới server GHN: ${err.message}`, 500);
+      }
+    }
+
+    if (shipperCode === 'JT') {
+      try {
+        // Build credentials format used by JT adapter
+        const credentials = { apiKey: realApiKey, mode };
+        // We can just use the calculateFee logic since it calls FREIGHTQUERY
+        const { jtAdapter } = await import('@/lib/carriers/jt');
+        const res = await jtAdapter.calculateFee({}, credentials);
+        
+        if (res.success) {
+          return jsonSuccess({ connected: true, message: `Kết nối thành công tới J&T (${mode}). Phí check: ${res.fee}` });
+        } else {
+          return jsonError(`Kết nối J&T thất bại: ${res.error}`, 400);
+        }
+      } catch (err) {
+        return jsonError(`Lỗi hệ thống khi test J&T: ${err.message}`, 500);
       }
     }
 
