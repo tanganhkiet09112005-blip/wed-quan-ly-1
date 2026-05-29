@@ -84,15 +84,17 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="login-demo">
-          <div style={{ marginBottom: 8, fontWeight: 600, color: 'var(--text-secondary)' }}>Tài khoản demo:</div>
-          <div style={{ fontSize: 13, lineHeight: 2 }}>
-            <div>Admin: <code>admin@hship.vn</code> · <code>admin123</code></div>
-            <div>Shop GenZ: <code>genz@hship.vn</code> · <code>shop123</code></div>
-            <div>Shop Baby: <code>baby@hship.vn</code> · <code>shop123</code></div>
-            <div>Shop Smart: <code>smart@hship.vn</code> · <code>shop123</code></div>
+        {process.env.NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS === 'true' && process.env.NODE_ENV !== 'production' && (
+          <div className="login-demo">
+            <div style={{ marginBottom: 8, fontWeight: 600, color: 'var(--text-secondary)' }}>Tài khoản demo:</div>
+            <div style={{ fontSize: 13, lineHeight: 2 }}>
+              <div>Admin: <code>admin@hship.vn</code> · <code>admin123</code></div>
+              <div>Shop GenZ: <code>genz@hship.vn</code> · <code>shop123</code></div>
+              <div>Shop Baby: <code>baby@hship.vn</code> · <code>shop123</code></div>
+              <div>Shop Smart: <code>smart@hship.vn</code> · <code>shop123</code></div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

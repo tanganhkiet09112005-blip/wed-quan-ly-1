@@ -28,6 +28,13 @@ export default function LivestreamPage() {
         </div>
       </div>
 
+      <div className="alert alert-warning mb-16" style={{ gap: 10, alignItems: 'flex-start' }}>
+        <Radio size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+        <div>
+          <strong>Chế độ Sandbox/Mock:</strong> Dùng chế độ <strong>Mock Mode (Giả lập)</strong> để test tạo đơn nháp từ bình luận. Môi trường <strong>Production</strong> bắt buộc khách hàng phải cấp <code>Page Access Token</code> và cấu hình Webhook thật từ Meta App. 
+        </div>
+      </div>
+
       {/* ─── Live session status banner ─── */}
       <div
         className="card mb-16"

@@ -74,6 +74,13 @@ export default function CustomerInvoicesPage() {
         </div>
       </div>
 
+      <div className="alert alert-warning mb-16" style={{ gap: 10, alignItems: 'flex-start', marginTop: 16 }}>
+        <FileText size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+        <div>
+          <strong>Chế độ Sandbox/Mock:</strong> Dùng chế độ <strong>Mock Mode (Giả lập)</strong> để test tạo và in hóa đơn nháp. Môi trường <strong>Production</strong> bắt buộc khách hàng phải cấp <code>MISA/VNPT Credentials</code> thật để xuất hóa đơn điện tử hợp lệ. 
+        </div>
+      </div>
+
       {/* KPIs */}
       <div className="grid-kpi" style={{ marginBottom: 24, gridTemplateColumns: 'repeat(5, 1fr)' }}>
         <div className="kpi-card">

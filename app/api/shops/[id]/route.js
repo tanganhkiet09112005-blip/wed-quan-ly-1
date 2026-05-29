@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
       prisma.shop.findUnique({
         where: { id },
         include: {
-          shopConfig: true,
+          configs: true,
           _count: { select: { orders: true, users: true, products: true } },
         },
       }),
@@ -37,7 +37,7 @@ export async function GET(request, { params }) {
       }),
       prisma.ecommerceChannelConnection.findMany({
         where: { shopId: id },
-        select: { id: true, platform: true, status: true, shopName: true, createdAt: true },
+        select: { id: true, platform: true, status: true, externalShopId: true, createdAt: true },
       }),
     ]);
 
@@ -47,11 +47,11 @@ export async function GET(request, { params }) {
     const recentOrders = orders.slice(0, 10);
 
     // Mask sensitive config — only return status, not tokens
-    const configSafe = shop.shopConfig ? {
-      fbStatus: shop.shopConfig.fbStatus,
-      misaStatus: shop.shopConfig.misaStatus,
-      hasFbPageId: Boolean(shop.shopConfig.fbPageId),
-      hasMisaAppId: Boolean(shop.shopConfig.misaAppId),
+    const configSafe = shop.configs ? {
+      fbStatus: shop.configs.fbStatus,
+      misaStatus: shop.configs.misaStatus,
+      hasFbPageId: Boolean(shop.configs.fbPageId),
+      hasMisaAppId: Boolean(shop.configs.misaAppId),
     } : null;
 
     return jsonSuccess({

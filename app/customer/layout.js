@@ -95,6 +95,7 @@ const NAV_GROUPS = [
     section: 'Cài đặt',
     items: [
       { href: '/customer/settings', label: 'Cài đặt shop', icon: Settings },
+      { href: '/customer/settings/production', label: 'Production Credentials', icon: Zap },
       { href: '/customer/channels/settings', label: 'Tích hợp Facebook', icon: MessageCircle },
       { href: '/customer/clients', label: 'Khách hàng', icon: Users },
       { href: '/customer/clients/blacklist', label: 'Khách bom hàng', icon: BookOpen },
