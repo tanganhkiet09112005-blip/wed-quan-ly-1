@@ -3,6 +3,15 @@ import { prisma } from '@/lib/prisma';
 import { JT_STATUS_MAP } from '@/lib/carriers/jt';
 import { verifyOptionalWebhookSecret } from '@/lib/server/webhook';
 
+export async function GET() {
+  return NextResponse.json({
+    status: "ok",
+    service: "J&T webhook",
+    method: "POST required",
+    message: "Webhook endpoint is live. J&T should send POST requests to this URL."
+  });
+}
+
 export async function POST(request) {
   try {
     const webhookError = verifyOptionalWebhookSecret(request);

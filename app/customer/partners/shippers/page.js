@@ -541,8 +541,11 @@ export default function ShippersPage() {
                         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px dashed #cbd5e1' }}>
                           <span style={{ fontWeight: 600 }}>Webhook URL gửi cho J&T:</span><br/>
                           <code style={{ fontSize: 11, background: '#e2e8f0', padding: '2px 6px', borderRadius: 4, wordBreak: 'break-all' }}>
-                            https://hship-management.vercel.app/api/webhooks/jt
+                            https://hship-management.vercel.app/api/webhooks/jt?secret=********
                           </code>
+                          <div style={{ fontSize: 10, marginTop: 4, color: '#64748b' }}>
+                            * Thay ******** bằng WEBHOOK_SECRET được cấu hình trên server.
+                          </div>
                         </div>
                       </div>
                     )}
