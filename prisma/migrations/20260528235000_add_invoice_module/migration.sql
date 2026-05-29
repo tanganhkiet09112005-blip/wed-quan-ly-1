@@ -1,5 +1,5 @@
 -- AlterTable to add nullable columns first
-ALTER TABLE `invoice` 
+ALTER TABLE `Invoice` 
     ADD COLUMN `cancelledAt` DATETIME(3) NULL,
     ADD COLUMN `customerAddress` TEXT NULL,
     ADD COLUMN `customerName` VARCHAR(191) NULL,
@@ -20,18 +20,18 @@ UPDATE `Invoice` i JOIN `Order` o ON i.orderId = o.id SET i.shopId = o.shopId, i
 UPDATE `Invoice` SET `shopId` = 'unknown', `customerName` = 'Unknown' WHERE `shopId` IS NULL;
 
 -- Now make them required
-ALTER TABLE `invoice` 
+ALTER TABLE `Invoice` 
     MODIFY `customerName` VARCHAR(191) NOT NULL,
     MODIFY `shopId` VARCHAR(191) NOT NULL;
 
 -- DropForeignKey
-ALTER TABLE `invoice` DROP FOREIGN KEY `Invoice_orderId_fkey`;
+ALTER TABLE `Invoice` DROP FOREIGN KEY `Invoice_orderId_fkey`;
 
 -- DropIndex
-DROP INDEX `Invoice_code_key` ON `invoice`;
+DROP INDEX `Invoice_code_key` ON `Invoice`;
 
 -- Drop old columns and apply remaining changes
-ALTER TABLE `invoice` 
+ALTER TABLE `Invoice` 
     DROP COLUMN `amount`,
     DROP COLUMN `misaSynced`,
     MODIFY `tax` DOUBLE NOT NULL DEFAULT 0,
