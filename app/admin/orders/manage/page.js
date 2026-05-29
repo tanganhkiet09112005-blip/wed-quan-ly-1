@@ -31,9 +31,10 @@ export default function ManageOrdersPage() {
       }); 
   };
 
-  useEffect(() => { 
+  useEffect(() => {
+    // eslint-disable-next-line
     fetchOrders();
-  }, []); 
+  }, []);
 
   const handleStatusUpdate = async (id, currentStatus) => { 
     let nextStatus = currentStatus; 
