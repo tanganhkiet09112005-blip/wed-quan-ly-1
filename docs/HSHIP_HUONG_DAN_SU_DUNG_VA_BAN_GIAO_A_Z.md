@@ -1,4 +1,4 @@
-# Hướng Dẫn Sử Dụng Và Bàn Giao Hệ Thống Hship/Uship
+# Hướng Dẫn Sử Dụng Và Bàn Giao Hệ Thống Hship
 
 - **Phiên bản:** Production Ready
 - **Đối tượng sử dụng:** Khách hàng, Admin tổng, Admin con, Shop, Kỹ thuật
@@ -18,7 +18,7 @@
 8. [Hướng dẫn cấu hình rule thông luồng](#8-hướng-dẫn-cấu-hình-rule-thông-luồng)
 9. [Hướng dẫn Admin duyệt đơn / đẩy vận chuyển](#9-hướng-dẫn-admin-duyệt-đơn--đẩy-vận-chuyển)
 10. [Hướng dẫn Shop xem trạng thái đơn](#10-hướng-dẫn-shop-xem-trạng-thái-đơn)
-11. [Quản lý đơn hàng (Uship Layout) và Đối soát](#11-quản-lý-đơn-hàng-uship-layout-và-đối-soát)
+11. [Quản lý đơn hàng (giao diện mẫu khách gửi) và Đối soát](#11-quản-lý-đơn-hàng-Hship-layout-và-đối-soát)
 12. [Production Credential Center](#12-production-credential-center)
 13. [CRM khách hàng và Blacklist](#13-crm-khách-hàng-và-blacklist)
 14. [Dashboard / Báo cáo](#14-dashboard--báo-cáo)
@@ -31,7 +31,7 @@
 ---
 
 ## 1. Tổng quan hệ thống
-Hệ thống Hship/Uship hỗ trợ nền tảng vận chuyển đa cấp độ với các tính năng:
+Hệ thống Hship hỗ trợ nền tảng vận chuyển đa cấp độ với các tính năng:
 - **Admin tổng / Admin con / Shop:** Phân quyền quản trị và sử dụng chặt chẽ.
 - **Quản lý shop:** Theo dõi, tạo mới, và kiểm soát cửa hàng đại lý.
 - **Bảng giá riêng theo từng shop:** Tùy biến mức giá cước linh hoạt theo từng mốc cân.
@@ -186,7 +186,7 @@ Thông luồng là cơ chế hệ thống tự xác định trạng thái xử l
 
 ---
 
-## 11. Quản lý đơn hàng (Uship Layout) và Đối soát
+## 11. Quản lý đơn hàng (giao diện mẫu khách gửi) và Đối soát
 
 Màn hình **Danh sách đơn hàng** (Dành cho Admin và Shop) được thiết kế hiện đại, cung cấp khả năng lọc và đối soát chuyên sâu.
 

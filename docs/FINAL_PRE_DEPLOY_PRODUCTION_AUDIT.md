@@ -1,4 +1,4 @@
-# FINAL PRE-DEPLOY PRODUCTION AUDIT - HSHIP/USHIP
+# FINAL PRE-DEPLOY PRODUCTION AUDIT - Hship
 
 **Date**: 2026-05-30
 **Status**: READY TO DEPLOY PRODUCTION
@@ -8,7 +8,7 @@
 
 ## 1. Tổng quan Audit
 Hệ thống đã trải qua quá trình audit chuyên sâu từ Database Schema, Migration, API Endpoints, Frontend Logic, cho tới Access Control (RBAC) và Flow Engine. 
-Mục tiêu chính: Rà soát bảo mật phân quyền (đặc biệt là Sub-Admin), tính toán cước tự động, thông luồng vận chuyển, và ổn định UI cho chức năng Quản lý Đơn hàng (chuẩn Uship).
+Mục tiêu chính: Rà soát bảo mật phân quyền (đặc biệt là Sub-Admin), tính toán cước tự động, thông luồng vận chuyển, và ổn định UI cho chức năng Quản lý Đơn hàng (chuẩn mẫu khách gửi).
 
 ## 2. Issues Found & Fixed (Lỗi Ngầm Đã Phát Hiện & Xử Lý)
 > [!WARNING] 
@@ -32,7 +32,7 @@ Mục tiêu chính: Rà soát bảo mật phân quyền (đặc biệt là Sub-A
 - Hệ thống chặn tạo các khoảng cân nặng trùng lặp (Overlap check).
 - Thiếu bảng giá hoặc khoảng cân bị trống sẽ bắn cảnh báo `PRICING_MISSING` và khóa luồng.
 
-## 6. Giao Diện Quản Lý Đơn Hàng (Uship Layout)
+## 6. Giao Diện Quản Lý Đơn Hàng (giao diện mẫu khách gửi)
 - Form tạo đơn có bổ sung `goodsContent` (tối đa 500 chars).
 - Danh sách đơn hàng tại `/orders` tích hợp đầy đủ 18 cột theo yêu cầu. Bảng hỗ trợ cuộn ngang linh hoạt, không phá vỡ layout.
 - **Reconciliation Filter (Bộ lọc Đối soát)**: 
