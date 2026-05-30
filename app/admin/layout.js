@@ -16,6 +16,7 @@ const BASE_NAV = [
     items: [
       { href: '/admin/dashboard', label: 'Tổng quan', icon: '▣' },
       { href: '/admin/shops', label: 'Quản lý shop', icon: '◎' },
+      { href: '/admin/orders/manage', label: 'Quản lý đơn hàng', icon: '📦' },
     ],
   },
 ];
