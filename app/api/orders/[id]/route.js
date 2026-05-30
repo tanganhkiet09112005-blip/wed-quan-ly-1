@@ -9,6 +9,7 @@ import {
   normalizeOrderForResponse,
   normalizeOrderStatus,
 } from '@/lib/order-constants';
+import { issueInvoiceForOrder } from '@/lib/server/invoice-service';
 
 const ALLOWED_PATCH_FIELDS = new Set([
   'status',
@@ -145,6 +146,11 @@ export async function PATCH(request, { params }) {
         include: getDetailInclude(),
       });
     });
+
+    // Auto Invoice Trigger
+    if (data.status === 'delivered' && normalizeOrderStatus(accessOrder.status) !== 'delivered') {
+      issueInvoiceForOrder(id, { trigger: 'ORDER_DELIVERED' }).catch(err => console.error('Auto invoice error:', err));
+    }
 
     return jsonSuccess({
       ...normalizeOrderForResponse(order),

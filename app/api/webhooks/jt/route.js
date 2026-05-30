@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { JT_STATUS_MAP } from '@/lib/carriers/jt';
 import { verifyOptionalWebhookSecret } from '@/lib/server/webhook';
+import { issueInvoiceForOrder } from '@/lib/server/invoice-service';
+import { applyInventoryRuleForOrderStatus } from '@/lib/server/order-service';
 
 export async function GET() {
   return NextResponse.json({
@@ -61,7 +63,17 @@ export async function POST(request) {
     if (hshipStatus === 'returned')  updateData.returnedAt  = new Date();
     if (remark)       updateData.note = [order.note, `[J&T] ${remark}`].filter(Boolean).join(' | ');
 
-    await prisma.order.update({ where: { id: order.id }, data: updateData });
+    const updated = await prisma.$transaction(async (tx) => {
+      const u = await tx.order.update({ where: { id: order.id }, data: updateData });
+      if (hshipStatus === 'delivered' || hshipStatus === 'cancelled') {
+        await applyInventoryRuleForOrderStatus(tx, u.id, hshipStatus, 'JT Webhook');
+      }
+      return u;
+    });
+
+    if (hshipStatus === 'delivered' && order.status !== 'delivered') {
+      issueInvoiceForOrder(updated.id, { trigger: 'ORDER_DELIVERED' }).catch(e => console.error(e));
+    }
 
     return NextResponse.json({ status: true });
 

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GHN_STATUS_MAP } from '@/lib/carriers/ghn';
 import { verifyOptionalWebhookSecret } from '@/lib/server/webhook';
+import { issueInvoiceForOrder } from '@/lib/server/invoice-service';
+import { applyInventoryRuleForOrderStatus } from '@/lib/server/order-service';
 
 /**
  * POST /api/webhooks/ghn
@@ -46,10 +48,21 @@ export async function POST(request) {
     if (hshipStatus === 'delivered') updateData.deliveredAt = new Date();
     if (hshipStatus === 'returned')  updateData.returnedAt  = new Date();
 
-    await prisma.order.update({
-      where: { id: order.id },
-      data:  updateData,
+    const updated = await prisma.$transaction(async (tx) => {
+      const u = await tx.order.update({
+        where: { id: order.id },
+        data: updateData,
+      });
+
+      if (hshipStatus === 'delivered' || hshipStatus === 'cancelled') {
+        await applyInventoryRuleForOrderStatus(tx, u.id, hshipStatus, 'GHN Webhook');
+      }
+      return u;
     });
+
+    if (hshipStatus === 'delivered' && order.status !== 'delivered') {
+      issueInvoiceForOrder(updated.id, { trigger: 'ORDER_DELIVERED' }).catch(e => console.error(e));
+    }
 
     console.log(`[GHN Webhook] ${OrderCode} → ${Status} → Hship: ${hshipStatus}`);
     return NextResponse.json({ success: true });

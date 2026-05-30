@@ -275,6 +275,12 @@ export async function POST(request) {
           shippingName: body.shippingName.trim(),
           shippingPhone: body.shippingPhone.trim(),
           shippingAddress: body.shippingAddress.trim(),
+          receiverProvince: body.receiverProvince ? body.receiverProvince.trim() : null,
+          receiverDistrict: body.receiverDistrict ? body.receiverDistrict.trim() : null,
+          receiverWard: body.receiverWard ? body.receiverWard.trim() : null,
+          senderName: body.senderName ? body.senderName.trim() : null,
+          senderPhone: body.senderPhone ? body.senderPhone.trim() : null,
+          senderAddress: body.senderAddress ? body.senderAddress.trim() : null,
           channel: body.channel || 'direct',
           codAmount,
           shippingFee: finalShippingFee,
@@ -317,11 +323,11 @@ export async function POST(request) {
 
     // Auto-push logic if enabled and ready
     let carrierResult = null;
-    let finalOrder = orderResult.order;
+    let finalOrder = order.order;
     
-    if (orderResult.flowInfo.flowStatus === 'READY_TO_PUSH' && orderResult.shop?.autoPushCarrierEnabled && orderResult.flowInfo.carrierCode) {
+    if (order.flowInfo.flowStatus === 'READY_TO_PUSH' && order.shop?.autoPushCarrierEnabled && order.flowInfo.carrierCode) {
       const { pushOrderToCarrier } = await import('@/lib/carriers/index');
-      carrierResult = await pushOrderToCarrier(orderResult.flowInfo.carrierCode, {
+      carrierResult = await pushOrderToCarrier(order.flowInfo.carrierCode, {
         ...finalOrder,
         shopId: scopedShopId,
         items: normalizedItems,

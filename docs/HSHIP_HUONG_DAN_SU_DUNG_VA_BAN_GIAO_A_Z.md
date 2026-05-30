@@ -22,11 +22,12 @@
 12. [Production Credential Center](#12-production-credential-center)
 13. [CRM khách hàng và Blacklist](#13-crm-khách-hàng-và-blacklist)
 14. [Dashboard / Báo cáo](#14-dashboard--báo-cáo)
-15. [Checklist UAT cho khách](#15-checklist-uat-cho-khách)
-16. [Lỗi thường gặp và cách xử lý](#16-lỗi-thường-gặp-và-cách-xử-lý)
-17. [Backup / Restore / Vận hành](#17-backup--restore--vận-hành)
-18. [Bảo mật](#18-bảo-mật)
-19. [Tóm tắt kiểm tra production](#19-tóm-tắt-kiểm-tra-production)
+15. [Hướng dẫn tự động xuất hóa đơn điện tử](#15-hướng-dẫn-tự-động-xuất-hóa-đơn-điện-tử)
+16. [Checklist UAT cho khách](#16-checklist-uat-cho-khách)
+17. [Lỗi thường gặp và cách xử lý](#17-lỗi-thường-gặp-và-cách-xử-lý)
+18. [Backup / Restore / Vận hành](#18-backup--restore--vận-hành)
+19. [Bảo mật](#19-bảo-mật)
+20. [Tóm tắt kiểm tra production](#20-tóm-tắt-kiểm-tra-production)
 
 ---
 
@@ -224,14 +225,29 @@ Màn hình **Danh sách đơn hàng** (Dành cho Admin và Shop) được thiế
 
 ---
 
-## 13. Dashboard / Báo cáo
+## 14. Dashboard / Báo cáo
 - **Dashboard** sẽ thống kê số liệu real-time từ đơn hàng thật.
 - Tổng phí vận chuyển lợi nhuận được hệ thống tính tự động từ cột `Order.shippingFee` (được snapshot tại thời điểm đơn được tạo).
 - **Việc thay đổi bảng giá sẽ không bao giờ làm đổi phí các đơn cũ**. Do đó, báo cáo lợi nhuận cũng sẽ không tự tính lại các đơn cũ theo bảng giá mới.
 
 ---
 
-## 14. Checklist UAT cho khách
+## 15. Hướng dẫn tự động xuất hóa đơn điện tử
+Hệ thống Hship hỗ trợ tự động xuất hóa đơn điện tử khi đơn hàng được giao thành công.
+
+### Cấu hình
+1. Shop vào **Hóa đơn điện tử**.
+2. Chọn **Cấu hình Hóa đơn**.
+3. Bật **Tự động xuất hóa đơn khi đơn hàng Giao Thành Công**.
+4. Chọn **Chế độ (Mode)**:
+   - **MOCK / SANDBOX**: Chế độ giả lập để test, tạo hóa đơn nháp, không hợp lệ pháp lý.
+   - **PRODUCTION**: Cần cấu hình API Key MISA SME hoặc VNPT Invoice thật.
+5. Nếu chọn **PRODUCTION** mà hệ thống phát hiện Shop chưa có cấu hình MISA/VNPT, đơn hàng giao thành công sẽ được báo lỗi `Thiếu API MISA` (`MISSING_CREDENTIALS`). Đây **không phải lỗi phần mềm**, mà là tính năng bảo vệ hệ thống không tạo fake success.
+6. Admin hoặc Shop có thể bấm **Xuất hóa đơn** (Retry) trong Danh sách đơn hàng khi đã có API Key.
+
+---
+
+## 16. Checklist UAT cho khách
 
 ### Admin tổng / Admin con
 - [ ] Admin tổng đăng nhập được.
@@ -266,7 +282,7 @@ Màn hình **Danh sách đơn hàng** (Dành cho Admin và Shop) được thiế
 
 ---
 
-## 15. Lỗi thường gặp và cách xử lý
+## 17. Lỗi thường gặp và cách xử lý
 
 | Tình huống | Nguyên nhân | Cách xử lý |
 |---|---|---|
@@ -280,7 +296,7 @@ Màn hình **Danh sách đơn hàng** (Dành cho Admin và Shop) được thiế
 
 ---
 
-## 16. Backup / Restore / Vận hành
+## 18. Backup / Restore / Vận hành
 - **Khuyến nghị:** Khách hàng nên Backup database định kỳ hàng tuần.
 - **Trước khi cập nhật hệ thống**, luôn phải Backup dữ liệu để đảm bảo an toàn.
 - **Không lưu API Key** ra file word hoặc các tài liệu công khai trên mạng. File backup `.sql` chứa mật khẩu đã băm nhưng vẫn cần được cất trong thư mục nén an toàn.
@@ -288,7 +304,7 @@ Màn hình **Danh sách đơn hàng** (Dành cho Admin và Shop) được thiế
 
 ---
 
-## 17. Bảo mật
+## 19. Bảo mật
 > [!CAUTION] Các quy tắc bảo mật sinh tử
 - Tuyệt đối **không chia sẻ tài khoản Admin tổng** cho nhân sự cấp dưới. Dùng chức năng tạo Admin con cho nhân viên.
 - Không chia sẻ API Key công khai.
@@ -298,7 +314,7 @@ Màn hình **Danh sách đơn hàng** (Dành cho Admin và Shop) được thiế
 
 ---
 
-## 18. Tóm tắt kiểm tra production
+## 20. Tóm tắt kiểm tra production
 - Hệ thống đã trải qua quá trình audit end-to-end chuyên sâu.
 - Các lệnh cấu trúc Database (`npx prisma validate/generate`) đã pass 100%.
 - Cú pháp code (`npm run lint/build`) hoàn toàn không lỗi.

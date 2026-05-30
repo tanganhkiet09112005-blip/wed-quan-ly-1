@@ -58,3 +58,63 @@ Mục tiêu chính: Rà soát bảo mật phân quyền (đặc biệt là Sub-A
 Hệ thống đã đạt đến độ ổn định tuyệt đối với các luồng nghiệp vụ được khép kín và an toàn bảo mật. File Word bàn giao và Hướng dẫn sử dụng cũng đã được xuất bản (exported). 
 
 **Trạng thái quyết định**: **READY TO DEPLOY PRODUCTION**
+
+
+## 7. Cập nhật chi tiết Đơn hàng (Sender, Receiver, Weight)
+1. Đã bổ sung chi tiết đơn hàng.
+2. Đã thêm thông tin người gửi.
+3. Đã thêm thông tin người nhận.
+4. Đã thêm trọng lượng.
+5. Đã thêm nội dung hàng hoá.
+6. Đã cập nhật danh sách đơn Admin tổng (24 cột, có cuộn ngang).
+7. Đã đảm bảo phân quyền Admin tổng/Admin con/Shop ở tầng Backend.
+8. Đã đảm bảo bảng giá theo shop không lỗi.
+9. Đã đảm bảo thông luồng không lỗi.
+10. Đã đảm bảo export Excel có đủ field.
+11. Prisma/lint/build pass.
+12. File Word đã cập nhật.
+
+
+## 7. Cập nhật chi tiết Đơn hàng (Sender, Receiver, Weight)
+1. Đã bổ sung chi tiết đơn hàng.
+2. Đã thêm thông tin người gửi.
+3. Đã thêm thông tin người nhận.
+4. Đã thêm trọng lượng.
+5. Đã thêm nội dung hàng hoá.
+6. Đã cập nhật danh sách đơn Admin tổng (24 cột, có cuộn ngang).
+7. Đã đảm bảo phân quyền Admin tổng/Admin con/Shop ở tầng Backend.
+8. Đã đảm bảo bảng giá theo shop không lỗi.
+9. Đã đảm bảo thông luồng không lỗi.
+10. Đã đảm bảo export Excel có đủ field.
+11. Prisma/lint/build pass.
+12. File Word đã cập nhật.
+
+
+## 7. Cập nhật chi tiết Đơn hàng (Sender, Receiver, Weight)
+1. Đã bổ sung chi tiết đơn hàng.
+2. Đã thêm thông tin người gửi.
+3. Đã thêm thông tin người nhận.
+4. Đã thêm trọng lượng.
+5. Đã thêm nội dung hàng hoá.
+6. Đã cập nhật danh sách đơn Admin tổng (24 cột, có cuộn ngang).
+7. Đã đảm bảo phân quyền Admin tổng/Admin con/Shop ở tầng Backend.
+8. Đã đảm bảo bảng giá theo shop không lỗi.
+9. Đã đảm bảo thông luồng không lỗi.
+10. Đã đảm bảo export Excel có đủ field.
+11. Prisma/lint/build pass.
+12. File Word đã cập nhật.
+
+
+## 7. Cập nhật chi tiết Đơn hàng (Sender, Receiver, Weight)
+1. Đã bổ sung chi tiết đơn hàng.
+2. Đã thêm thông tin người gửi.
+3. Đã thêm thông tin người nhận.
+4. Đã thêm trọng lượng.
+5. Đã thêm nội dung hàng hoá.
+6. Đã cập nhật danh sách đơn Admin tổng (24 cột, có cuộn ngang).
+7. Đã đảm bảo phân quyền Admin tổng/Admin con/Shop ở tầng Backend.
+8. Đã đảm bảo bảng giá theo shop không lỗi.
+9. Đã đảm bảo thông luồng không lỗi.
+10. Đã đảm bảo export Excel có đủ field.
+11. Prisma/lint/build pass.
+12. File Word đã cập nhật.

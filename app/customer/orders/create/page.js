@@ -25,6 +25,12 @@ function OrderForm() {
     customerName: searchParams.get('customerName') || '',
     phone: '',
     address: '',
+    receiverProvince: '',
+    receiverDistrict: '',
+    receiverWard: '',
+    senderName: '',
+    senderPhone: '',
+    senderAddress: '',
     shipperCode: 'GHN',
     codAmount: '',
     shippingFee: '',
@@ -249,6 +255,8 @@ function OrderForm() {
     if (!form.customerName.trim()) nextErrors.customerName = 'Vui lòng nhập tên người nhận.';
     if (!form.phone.trim()) nextErrors.phone = 'Vui lòng nhập số điện thoại.';
     if (!form.address.trim()) nextErrors.address = 'Vui lòng nhập địa chỉ giao hàng.';
+    if (form.weight !== '' && Number(form.weight) <= 0) nextErrors.weight = 'Trọng lượng phải lớn hơn 0.';
+    if (form.goodsContent.length > 500) nextErrors.goodsContent = 'Nội dung tối đa 500 ký tự.';
     if (form.codAmount !== '' && Number(form.codAmount) < 0) nextErrors.codAmount = 'COD không được âm.';
     if (form.shippingFee !== '' && Number(form.shippingFee) < 0) nextErrors.shippingFee = 'Cước phí không được âm.';
     form.products.forEach((item, index) => {
@@ -275,6 +283,12 @@ function OrderForm() {
           shippingName: form.customerName,
           shippingPhone: form.phone,
           shippingAddress: form.address,
+          receiverProvince: form.receiverProvince,
+          receiverDistrict: form.receiverDistrict,
+          receiverWard: form.receiverWard,
+          senderName: form.senderName,
+          senderPhone: form.senderPhone,
+          senderAddress: form.senderAddress,
           shipperCode: form.shipperCode,
           channel: form.channel,
           codAmount: selectedCod,
@@ -349,6 +363,24 @@ function OrderForm() {
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 360px', gap: 20 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div className="card">
+              <div className="card-title">Thông tin người gửi</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="form-label">Tên người gửi</label>
+                  <input className="form-control" placeholder="Tên kho / shop" value={form.senderName} onChange={(event) => setForm((current) => ({ ...current, senderName: event.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Số điện thoại gửi</label>
+                  <input className="form-control" placeholder="090..." value={form.senderPhone} onChange={(event) => setForm((current) => ({ ...current, senderPhone: event.target.value }))} />
+                </div>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="form-label">Địa chỉ người gửi</label>
+                  <input className="form-control" placeholder="123 Đường gửi hàng" value={form.senderAddress} onChange={(event) => setForm((current) => ({ ...current, senderAddress: event.target.value }))} />
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
               <div className="card-title">Thông tin người nhận</div>
               <div className="card-subtitle">Có thể chọn khách đã có để tự điền SĐT và địa chỉ.</div>
 
@@ -395,9 +427,21 @@ function OrderForm() {
                   <input className="form-control" placeholder="Nguyễn Văn A" value={form.customerName} onChange={(event) => setForm((current) => ({ ...current, customerName: event.target.value }))} />
                   {errors.customerName && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 4 }}>{errors.customerName}</div>}
                 </div>
+                <div className="form-group">
+                  <label className="form-label">Tỉnh/Thành phố</label>
+                  <input className="form-control" placeholder="TP.HCM" value={form.receiverProvince} onChange={(event) => setForm((current) => ({ ...current, receiverProvince: event.target.value }))} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Quận/Huyện</label>
+                  <input className="form-control" placeholder="Quận 1" value={form.receiverDistrict} onChange={(event) => setForm((current) => ({ ...current, receiverDistrict: event.target.value }))} />
+                </div>
                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                  <label className="form-label">Địa chỉ giao hàng *</label>
-                  <input className="form-control" placeholder="12 Nguyễn Huệ, Quận 1, TP.HCM" value={form.address} onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))} />
+                  <label className="form-label">Phường/Xã</label>
+                  <input className="form-control" placeholder="Phường Bến Nghé" value={form.receiverWard} onChange={(event) => setForm((current) => ({ ...current, receiverWard: event.target.value }))} />
+                </div>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="form-label">Địa chỉ giao hàng (Số nhà, tên đường) *</label>
+                  <input className="form-control" placeholder="12 Nguyễn Huệ" value={form.address} onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))} />
                   {errors.address && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 4 }}>{errors.address}</div>}
                 </div>
               </div>
@@ -491,6 +535,7 @@ function OrderForm() {
               <div className="form-group" style={{ marginTop: 20 }}>
                 <label className="form-label">Nội dung hàng hoá</label>
                 <input className="form-control" placeholder="Ví dụ: Áo thun, mỹ phẩm, phụ kiện điện thoại..." value={form.goodsContent} maxLength={500} onChange={(event) => setForm((current) => ({ ...current, goodsContent: event.target.value }))} />
+                {errors.goodsContent && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 4 }}>{errors.goodsContent}</div>}
               </div>
             </div>
 
@@ -505,6 +550,11 @@ function OrderForm() {
             <div className="card">
               <div className="card-title">COD / cước phí</div>
               <div className="card-subtitle">Nếu bỏ trống COD, hệ thống dùng tổng giá trị hàng.</div>
+              <div className="form-group">
+                <label className="form-label">Trọng lượng (kg)</label>
+                <input className="form-control" type="number" min="0" step="0.1" placeholder="Ví dụ: 1.5" value={form.weight} onChange={(event) => handleWeightChange(event.target.value)} />
+                {errors.weight && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 4 }}>{errors.weight}</div>}
+              </div>
               <div className="form-group">
                 <label className="form-label">Số tiền COD</label>
                 <input className="form-control" type="number" min="0" placeholder={`${totalValue || 0}`} value={form.codAmount} onChange={(event) => setForm((current) => ({ ...current, codAmount: event.target.value }))} />

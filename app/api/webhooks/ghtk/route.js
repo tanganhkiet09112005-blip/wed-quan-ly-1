@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GHTK_STATUS_MAP } from '@/lib/carriers/ghtk';
 import { verifyOptionalWebhookSecret } from '@/lib/server/webhook';
+import { issueInvoiceForOrder } from '@/lib/server/invoice-service';
+import { applyInventoryRuleForOrderStatus } from '@/lib/server/order-service';
 
 /**
  * POST /api/webhooks/ghtk
@@ -42,7 +44,17 @@ export async function POST(request) {
     if (hshipStatus === 'returned')  updateData.returnedAt  = new Date();
     if (reason)             updateData.note        = [order.note, `[GHTK] ${reason}`].filter(Boolean).join(' | ');
 
-    await prisma.order.update({ where: { id: order.id }, data: updateData });
+    const updated = await prisma.$transaction(async (tx) => {
+      const u = await tx.order.update({ where: { id: order.id }, data: updateData });
+      if (hshipStatus === 'delivered' || hshipStatus === 'cancelled') {
+        await applyInventoryRuleForOrderStatus(tx, u.id, hshipStatus, 'GHTK Webhook');
+      }
+      return u;
+    });
+
+    if (hshipStatus === 'delivered' && order.status !== 'delivered') {
+      issueInvoiceForOrder(updated.id, { trigger: 'ORDER_DELIVERED' }).catch(e => console.error(e));
+    }
 
     console.log(`[GHTK Webhook] ${label} → status_id=${status_id} → Hship: ${hshipStatus}`);
     return NextResponse.json({ success: true });

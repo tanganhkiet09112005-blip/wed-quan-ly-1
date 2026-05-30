@@ -189,14 +189,20 @@ export default function ManageOrdersPage() {
   }, [filtered]);
 
   const exportExcel = () => {
-    const headers = ['Mã vận đơn', 'Mã đơn hàng', 'Tên cửa hàng', 'Khách hàng', 'SĐT', 'Nội dung hàng hoá', 'Đơn vị vận chuyển', 'Tiền hàng', 'Phí dịch vụ', 'Giá trị đơn hàng', 'Tiền thu hộ', 'Trạng thái đơn', 'Trạng thái COD', 'Trạng thái đối soát', 'Admin quản lý', 'Ngày tạo'];
+    const headers = ['Mã vận đơn', 'Mã đơn hàng', 'Tên cửa hàng', 'Admin quản lý', 'Tên người gửi', 'SĐT người gửi', 'Địa chỉ người gửi', 'Tên người nhận', 'SĐT người nhận', 'Địa chỉ người nhận', 'Nội dung hàng hoá', 'Trọng lượng', 'Đơn vị vận chuyển', 'Tiền hàng', 'Phí dịch vụ', 'Giá trị đơn hàng', 'Tiền thu hộ', 'Trạng thái đơn', 'Trạng thái COD', 'Trạng thái đối soát', 'Ngày đối soát', 'Trạng thái Hóa đơn', 'Số Hóa đơn', 'Ngày tạo'];
     const rows = filtered.map(o => [
       o.trackingCode || '-',
       o.code,
       o.shop?.name || '-',
-      o.shippingName,
-      o.shippingPhone,
+      o.shop?.admin?.name || '-',
+      o.senderName || '-',
+      o.senderPhone || '-',
+      o.senderAddress || '-',
+      o.shippingName || '-',
+      o.shippingPhone || '-',
+      `${o.shippingAddress || ''} ${o.receiverWard || ''} ${o.receiverDistrict || ''} ${o.receiverProvince || ''}`.trim() || '-',
       o.goodsContent || '-',
+      o.weight || '-',
       o.carrierName || o.shipperCode || '-',
       o.totalValue || 0,
       o.shippingFee || 0,
@@ -205,7 +211,9 @@ export default function ManageOrdersPage() {
       getStatusLabel(o.status),
       getCodStatusLabel(o.codStatus),
       o.reconciliationStatus === 'RECONCILED' ? 'Đã đối soát' : 'Chờ đối soát',
-      o.shop?.admin?.name || '-',
+      o.reconciledAt ? new Date(o.reconciledAt).toLocaleString('vi-VN') : '-',
+      o.invoiceStatus || 'NOT_ISSUED',
+      o.invoiceNumber || '-',
       new Date(o.createdAt).toLocaleString('vi-VN')
     ]);
 
@@ -342,22 +350,31 @@ export default function ManageOrdersPage() {
         <div className="table-wrapper" style={{ overflowX: 'auto' }}>
           <table className="table" style={{ minWidth: 1400 }}>
             <thead>
-              <tr>
+              <tr style={{ whiteSpace: 'nowrap' }}>
                 {isAdmin && <th style={{ width: 40 }}><input type="checkbox" onChange={e => setSelectedOrders(e.target.checked ? filtered.map(o => o.id) : [])} checked={filtered.length > 0 && selectedOrders.length === filtered.length} /></th>}
                 <th>Mã vận đơn</th>
                 <th>Mã đơn hàng</th>
                 {isAdmin && <th>Tên cửa hàng</th>}
+                {isSuperAdmin && <th>Admin quản lý</th>}
+                <th>Tên người gửi</th>
+                <th>SĐT người gửi</th>
+                <th>Địa chỉ người gửi</th>
                 <th>Khách hàng</th>
+                <th>SĐT người nhận</th>
+                <th>Địa chỉ người nhận</th>
                 <th>Nội dung hàng hoá</th>
+                <th>Trọng lượng</th>
                 <th>Đơn vị VC</th>
                 <th>Tiền hàng</th>
                 <th>Phí dịch vụ</th>
-                <th>Tiền thu hộ</th>
-                <th>Trạng thái đơn</th>
-                <th>Đối soát</th>
-                {isSuperAdmin && <th>Admin</th>}
-                <th>Ngày tạo</th>
-                <th>Thao tác</th>
+                <th>Giá trị đơn hàng</th>
+                <th>COD</th>
+                <th>T.Thái Giao</th>
+                <th>T.Thái Tiền</th>
+                <th style={{ minWidth: 140 }}>Đối soát</th>
+                <th style={{ minWidth: 140 }}>Hóa đơn</th>
+                <th style={{ minWidth: 140 }}>Ngày tạo</th>
+                <th style={{ minWidth: 100, textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -385,20 +402,35 @@ export default function ManageOrdersPage() {
                   {isAdmin && (
                     <td>{order.shop?.name || '-'}</td>
                   )}
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{order.shippingName}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{order.shippingPhone}</div>
+                  {isSuperAdmin && (
+                    <td>{order.shop?.admin?.name || '-'}</td>
+                  )}
+                  <td>{order.senderName || '-'}</td>
+                  <td>{order.senderPhone || '-'}</td>
+                  <td style={{ maxWidth: 150 }} title={order.senderAddress || '-'}>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{order.senderAddress || '-'}</div>
                   </td>
-                  <td style={{ maxWidth: 180 }}>
-                    <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={order.goodsContent || order.items?.map(p => `${p.name} x${p.quantity}`).join(', ')}>
+                  <td>
+                    <div style={{ fontWeight: 600 }}>{order.shippingName || '-'}</div>
+                  </td>
+                  <td>{order.shippingPhone || '-'}</td>
+                  <td style={{ maxWidth: 180 }} title={`${order.shippingAddress || ''} ${order.receiverWard || ''} ${order.receiverDistrict || ''} ${order.receiverProvince || ''}`.trim() || '-'}>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {`${order.shippingAddress || ''} ${order.receiverWard || ''} ${order.receiverDistrict || ''} ${order.receiverProvince || ''}`.trim() || '-'}
+                    </div>
+                  </td>
+                  <td style={{ maxWidth: 180 }} title={order.goodsContent || order.items?.map(p => `${p.name} x${p.quantity}`).join(', ')}>
+                    <div style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {order.goodsContent || '-'}
                     </div>
                   </td>
+                  <td>{order.weight || '-'}</td>
                   <td>
                     {order.carrierName || order.shipperCode || '-'}
                   </td>
                   <td>{formatCurrency(order.totalValue)}</td>
                   <td>{formatCurrency(order.shippingFee)}</td>
+                  <td>{formatCurrency(order.totalValue)}</td>
                   <td><span style={{ fontWeight: 700 }}>{formatCurrency(order.codAmount)}</span></td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -407,13 +439,24 @@ export default function ManageOrdersPage() {
                     </div>
                   </td>
                   <td>
+                    <span className={`badge ${getCodStatusColor(order.codStatus)}`}>{getCodStatusLabel(order.codStatus)}</span>
+                  </td>
+                  <td>
                     <span className={`badge ${order.reconciliationStatus === 'RECONCILED' ? 'status-delivered' : 'status-pending'}`}>
                       {order.reconciliationStatus === 'RECONCILED' ? 'Đã đối soát' : 'Chờ đối soát'}
                     </span>
                   </td>
-                  {isSuperAdmin && (
-                    <td>{order.shop?.admin?.name || '-'}</td>
-                  )}
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {order.invoiceStatus === 'ISSUED' && <span className="badge status-delivered">Đã xuất ({order.invoiceProvider})</span>}
+                      {order.invoiceStatus === 'MOCK_ISSUED' && <span className="badge" style={{background:'#f3f4f6', color:'#4b5563'}}>Bản test</span>}
+                      {order.invoiceStatus === 'MISSING_CREDENTIALS' && <span className="badge status-cancelled">Thiếu API MISA</span>}
+                      {order.invoiceStatus === 'FAILED' && <span className="badge status-cancelled">Lỗi xuất HĐ</span>}
+                      {(!order.invoiceStatus || order.invoiceStatus === 'NOT_ISSUED') && <span className="badge" style={{background:'#f3f4f6', color:'#6b7280'}}>Chưa xuất</span>}
+                      
+                      {order.invoiceNumber && <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-muted)' }}>{order.invoiceNumber}</span>}
+                    </div>
+                  </td>
                   <td>
                     <span style={{ fontSize: 12 }}>{new Date(order.createdAt).toLocaleString('vi-VN')}</span>
                   </td>
@@ -427,6 +470,26 @@ export default function ManageOrdersPage() {
                       {isAdmin && (order.flowStatus === 'READY_TO_PUSH' || order.flowStatus === 'PUSH_FAILED') && (
                         <button onClick={() => handlePushCarrier(order.id)} disabled={actionLoading === order.id} className="btn btn-primary btn-sm" style={{ padding: '4px 10px', fontSize: 11 }}>
                           Đẩy vận chuyển
+                        </button>
+                      )}
+                      {(order.invoiceStatus === 'MISSING_CREDENTIALS' || order.invoiceStatus === 'FAILED' || (order.invoiceStatus === 'NOT_ISSUED' && order.status === 'delivered')) && (
+                        <button onClick={async () => {
+                          if (!confirm('Xuất lại hóa đơn cho đơn hàng này?')) return;
+                          setActionLoading(order.id);
+                          try {
+                            const res = await fetch(`/api/orders/${order.id}/invoice`, { method: 'POST' });
+                            const data = await res.json();
+                            if (data.success) {
+                              alert('Thành công');
+                              window.location.reload();
+                            } else alert(data.error);
+                          } catch {
+                            alert('Lỗi kết nối');
+                          } finally {
+                            setActionLoading(null);
+                          }
+                        }} disabled={actionLoading === order.id} className="btn btn-secondary btn-sm" style={{ padding: '4px 10px', fontSize: 11, color: '#2563eb', borderColor: '#bfdbfe', background: '#eff6ff' }}>
+                          Xuất hóa đơn
                         </button>
                       )}
                     </div>
