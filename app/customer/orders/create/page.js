@@ -33,6 +33,7 @@ function OrderForm() {
     channel: searchParams.get('customerName') ? 'fanpage' : 'direct',
     products: [{ name: searchParams.get('product') || '', qty: 1, price: searchParams.get('price') || '' }],
     customerId: '',
+    goodsContent: '',
   });
   const [saving, setSaving] = useState(false);
   const [savedCode, setSavedCode] = useState('');
@@ -281,6 +282,7 @@ function OrderForm() {
           weight: form.weight ? Number(form.weight) : undefined,
           appliedRateTierId: feeFromRate && rateInfo?.tierId ? rateInfo.tierId : undefined,
           note: form.note,
+          goodsContent: form.goodsContent,
           customerId: form.customerId || null,
           items: form.products.map((item) => ({
             name: item.name,
@@ -485,6 +487,10 @@ function OrderForm() {
                     )}
                   </div>
                 ))}
+              </div>
+              <div className="form-group" style={{ marginTop: 20 }}>
+                <label className="form-label">Nội dung hàng hoá</label>
+                <input className="form-control" placeholder="Ví dụ: Áo thun, mỹ phẩm, phụ kiện điện thoại..." value={form.goodsContent} maxLength={500} onChange={(event) => setForm((current) => ({ ...current, goodsContent: event.target.value }))} />
               </div>
             </div>
 

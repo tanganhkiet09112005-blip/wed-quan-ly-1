@@ -24,7 +24,7 @@ export async function PATCH(request, { params }) {
     const customer = await prisma.customer.findUnique({ where: { id } });
     if (!customer) return jsonError('Không tìm thấy khách hàng.', 404);
 
-    const accessError = assertShopAccess(user, customer.shopId);
+    const accessError = await assertShopAccess(user, customer.shopId);
     if (accessError) return accessError;
 
     if (updateData.phone && updateData.phone !== customer.phone) {
@@ -56,7 +56,7 @@ export async function DELETE(request, { params }) {
     const customer = await prisma.customer.findUnique({ where: { id } });
     if (!customer) return jsonError('Không tìm thấy khách hàng.', 404);
 
-    const accessError = assertShopAccess(user, customer.shopId);
+    const accessError = await assertShopAccess(user, customer.shopId);
     if (accessError) return accessError;
 
     await prisma.customer.delete({ where: { id } });

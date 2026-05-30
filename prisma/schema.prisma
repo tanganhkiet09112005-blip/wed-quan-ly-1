@@ -127,6 +127,10 @@ model Order {
   stockDeductedAt DateTime?
   stockRestoredAt DateTime?
 
+  goodsContent    String?  @db.VarChar(500)
+  reconciliationStatus String? @default("PENDING") // PENDING, RECONCILED
+  reconciledAt      DateTime?
+
   // Flow Routing Fields
   flowStatus        String?
   flowMessage       String?  @db.Text

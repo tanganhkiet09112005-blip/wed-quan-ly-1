@@ -18,14 +18,15 @@
 8. [Hướng dẫn cấu hình rule thông luồng](#8-hướng-dẫn-cấu-hình-rule-thông-luồng)
 9. [Hướng dẫn Admin duyệt đơn / đẩy vận chuyển](#9-hướng-dẫn-admin-duyệt-đơn--đẩy-vận-chuyển)
 10. [Hướng dẫn Shop xem trạng thái đơn](#10-hướng-dẫn-shop-xem-trạng-thái-đơn)
-11. [Production Credential Center](#11-production-credential-center)
-12. [CRM khách hàng và Blacklist](#12-crm-khách-hàng-và-blacklist)
-13. [Dashboard / Báo cáo](#13-dashboard--báo-cáo)
-14. [Checklist UAT cho khách](#14-checklist-uat-cho-khách)
-15. [Lỗi thường gặp và cách xử lý](#15-lỗi-thường-gặp-và-cách-xử-lý)
-16. [Backup / Restore / Vận hành](#16-backup--restore--vận-hành)
-17. [Bảo mật](#17-bảo-mật)
-18. [Tóm tắt kiểm tra production](#18-tóm-tắt-kiểm-tra-production)
+11. [Quản lý đơn hàng (Uship Layout) và Đối soát](#11-quản-lý-đơn-hàng-uship-layout-và-đối-soát)
+12. [Production Credential Center](#12-production-credential-center)
+13. [CRM khách hàng và Blacklist](#13-crm-khách-hàng-và-blacklist)
+14. [Dashboard / Báo cáo](#14-dashboard--báo-cáo)
+15. [Checklist UAT cho khách](#15-checklist-uat-cho-khách)
+16. [Lỗi thường gặp và cách xử lý](#16-lỗi-thường-gặp-và-cách-xử-lý)
+17. [Backup / Restore / Vận hành](#17-backup--restore--vận-hành)
+18. [Bảo mật](#18-bảo-mật)
+19. [Tóm tắt kiểm tra production](#19-tóm-tắt-kiểm-tra-production)
 
 ---
 
@@ -185,7 +186,31 @@ Thông luồng là cơ chế hệ thống tự xác định trạng thái xử l
 
 ---
 
-## 11. Production Credential Center
+## 11. Quản lý đơn hàng (Uship Layout) và Đối soát
+
+Màn hình **Danh sách đơn hàng** (Dành cho Admin và Shop) được thiết kế hiện đại, cung cấp khả năng lọc và đối soát chuyên sâu.
+
+### Các tính năng chính:
+- **Nội dung hàng hoá**: Khi tạo đơn, Shop có thể nhập Nội dung hàng hóa (Ví dụ: Áo thun, mỹ phẩm...). Thông tin này hiển thị rõ ràng trên cột "Nội dung hàng hoá".
+- **Lọc Đối soát**: Hệ thống có menu dropdown Đối soát để lọc:
+  - `Chờ đối soát`: Lọc ra các đơn hàng chưa đối soát.
+  - `Đã đối soát`: Lọc ra các đơn hàng đã đối soát xong.
+  - Chọn cả hai hoặc không chọn gì sẽ hiển thị toàn bộ đơn.
+- **Lọc Nâng cao**: 
+  - Trạng thái đơn (Đơn nháp, Đang giao, Đã giao, Hoàn hàng...)
+  - Trạng thái COD (Đang thu, Đã thu, Đã đối soát...)
+  - Đơn vị vận chuyển (GHN, SPX, J&T...)
+  - Lọc theo ngày.
+- **Thẻ Thống kê (Summary Cards)**: Hệ thống tự động tính tổng Số lượng đơn, Tổng giá trị đơn hàng, Tổng tiền thu hộ (COD) và Tổng phí dịch vụ giao hàng **Dựa trên dữ liệu đang được lọc**.
+- **Xuất Excel**: Cho phép tải xuống file `.csv` danh sách đơn hàng dựa trên các bộ lọc hiện tại, hỗ trợ đầy đủ các trường nội dung hàng hóa và đối soát.
+
+### Quyền hạn Đối soát:
+- Chỉ **Admin tổng** và **Admin con** (quản lý shop đó) mới có thể chọn các đơn hàng và bấm "Đánh dấu đã đối soát".
+- **Shop** chỉ có quyền xem trạng thái, không thể tự đối soát đơn hàng.
+
+---
+
+## 12. Production Credential Center
 - **Khái niệm:** API key/credential là thông tin kết nối thật với đơn vị vận chuyển/nền tảng bên thứ ba (GHTK, GHN, J&T).
 - Nếu thiếu thông tin này, hệ thống sẽ báo `MISSING_CREDENTIALS`.
 - **Lưu ý:** Đây **không phải lỗi phần mềm**. Khi nhập đủ API key thật, hệ thống mới có thể đẩy vận chuyển thật (Không fake success).

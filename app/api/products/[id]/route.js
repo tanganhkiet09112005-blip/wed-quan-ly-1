@@ -49,7 +49,7 @@ export async function GET(_request, { params }) {
     const accessProduct = await getProductForAccess(id);
     if (!accessProduct) return jsonError('Không tìm thấy sản phẩm.', 404);
 
-    const accessError = assertShopAccess(user, accessProduct.shopId);
+    const accessError = await assertShopAccess(user, accessProduct.shopId);
     if (accessError) return accessError;
 
     const product = await prisma.product.findUnique({
@@ -72,7 +72,7 @@ export async function PATCH(request, { params }) {
     const accessProduct = await getProductForAccess(id);
     if (!accessProduct) return jsonError('Không tìm thấy sản phẩm.', 404);
 
-    const accessError = assertShopAccess(user, accessProduct.shopId);
+    const accessError = await assertShopAccess(user, accessProduct.shopId);
     if (accessError) return accessError;
 
     const body = await request.json();
@@ -228,7 +228,7 @@ export async function DELETE(_request, { params }) {
     const accessProduct = await getProductForAccess(id);
     if (!accessProduct) return jsonError('Không tìm thấy sản phẩm.', 404);
 
-    const accessError = assertShopAccess(user, accessProduct.shopId);
+    const accessError = await assertShopAccess(user, accessProduct.shopId);
     if (accessError) return accessError;
 
     const product = await prisma.product.update({

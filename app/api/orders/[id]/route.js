@@ -74,7 +74,7 @@ export async function GET(_request, { params }) {
     const accessOrder = await getOrderForAccess(id);
     if (!accessOrder) return jsonError('Khong tim thay don hang.', 404);
 
-    const accessError = assertShopAccess(user, accessOrder.shopId);
+    const accessError = await assertShopAccess(user, accessOrder.shopId);
     if (accessError) return accessError;
 
     const order = await prisma.order.findUnique({
@@ -100,7 +100,7 @@ export async function PATCH(request, { params }) {
     const accessOrder = await getOrderForAccess(id);
     if (!accessOrder) return jsonError('Khong tim thay don hang.', 404);
 
-    const accessError = assertShopAccess(user, accessOrder.shopId);
+    const accessError = await assertShopAccess(user, accessOrder.shopId);
     if (accessError) return accessError;
 
     const body = await request.json();
@@ -164,7 +164,7 @@ export async function DELETE(_request, { params }) {
     const accessOrder = await getOrderForAccess(id);
     if (!accessOrder) return jsonError('Khong tim thay don hang.', 404);
 
-    const accessError = assertShopAccess(user, accessOrder.shopId);
+    const accessError = await assertShopAccess(user, accessOrder.shopId);
     if (accessError) return accessError;
 
     if (normalizeOrderStatus(accessOrder.status) === 'delivered') {

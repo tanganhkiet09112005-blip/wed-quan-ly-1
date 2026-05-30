@@ -27,8 +27,17 @@
 - Database an toàn, không có lệnh DROP. Snapshot cũ của `Order.shippingFee` được giữ nguyên. 
 - Toàn bộ Schema Prisma hợp lệ.
 
-## 6. Prisma validate/generate pass chưa?
-✅ **PASS 100%**.
+## 6. Audit Uship Orders Layout & Features (New)
+- [x] Tính năng nhập "Nội dung hàng hoá" khi tạo đơn, lưu DB `goodsContent` (max 500 chars).
+- [x] Migration DB an toàn với `reconciliationStatus` và `reconciledAt`.
+- [x] API hỗ trợ thay đổi trạng thái đối soát hàng loạt cho Admin (`/api/orders/reconcile`).
+- [x] Lọc đơn hàng nâng cao: Trạng thái đơn, Trạng thái COD, ĐVVC, Ngày, và Trạng thái đối soát (Chờ/Đã đối soát).
+- [x] Bảng đơn hàng giao diện chuẩn Uship có hiển thị Nội dung hàng hoá, Khách hàng, Trạng thái đối soát.
+- [x] Các thẻ thống kê số liệu tổng thay đổi theo kết quả lọc.
+- [x] Hỗ trợ tính năng Xuất Excel (CSV).
+- [x] Cập nhật hướng dẫn sử dụng và file Word bàn giao `.docx`.
+
+---
 
 ## 7. Lint/build pass chưa?
 ✅ **PASS 100%**. 

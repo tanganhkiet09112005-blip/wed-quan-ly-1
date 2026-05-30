@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/server/auth';
+import { requireAdmin, isSubAdmin } from '@/lib/server/auth';
 import { serverError } from '@/lib/server/responses';
 import { summarizeOrders } from '@/lib/server/dashboard-service';
 
 export async function GET() {
   try {
-    const { response } = await requireAdmin();
+    const { user, response } = await requireAdmin();
     if (response) return response;
+
+    const isSub = isSubAdmin(user);
+    const shopWhere = isSub ? { adminId: user.id } : {};
+    const orderWhere = isSub ? { shop: { adminId: user.id } } : {};
 
     const [shops, orders] = await Promise.all([
       prisma.shop.findMany({
+        where: shopWhere,
         orderBy: { createdAt: 'desc' },
         include: { _count: { select: { orders: true } } },
       }),
       prisma.order.findMany({
+        where: orderWhere,
         select: {
           id: true,
           code: true,

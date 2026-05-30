@@ -16,7 +16,7 @@ export async function POST(request, { params }) {
     });
     if (!order) return jsonError('Khong tim thay don hang.', 404);
 
-    const accessError = assertShopAccess(user, order.shopId);
+    const accessError = await assertShopAccess(user, order.shopId);
     if (accessError) return accessError;
 
     if (normalizeOrderStatus(order.status) !== 'draft') {

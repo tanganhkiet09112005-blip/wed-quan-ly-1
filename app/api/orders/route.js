@@ -62,6 +62,22 @@ function buildOrdersWhere(searchParams, scopedShopId) {
   if (codStatuses.length === 1) where.codStatus = codStatuses[0];
   if (codStatuses.length > 1) where.codStatus = { in: codStatuses };
 
+  const recStatuses = parseList(searchParams.get('reconciliationStatus'));
+  if (recStatuses.length > 0) {
+    if (recStatuses.includes('PENDING') && recStatuses.includes('RECONCILED')) {
+      // Do nothing, means ALL
+    } else if (recStatuses.includes('PENDING')) {
+      and.push({
+        OR: [
+          { reconciliationStatus: 'PENDING' },
+          { reconciliationStatus: null }
+        ]
+      });
+    } else if (recStatuses.includes('RECONCILED')) {
+      where.reconciliationStatus = 'RECONCILED';
+    }
+  }
+
   const channel = searchParams.get('channel');
   if (channel) where.channel = channel;
 
@@ -128,6 +144,9 @@ export async function GET(request) {
     }
 
     const where = buildOrdersWhere(searchParams, scopedShopId);
+    if (user.role === 'admin' && user.parentAdminId) {
+      where.shop = { adminId: user.id };
+    }
     const facetWhere = buildFacetWhere(where);
 
     const [orders, total, statusGroups, codStatusGroups] = await Promise.all([
@@ -182,6 +201,13 @@ export async function POST(request) {
 
     const scopedShopId = isAdmin(user) ? body.shopId || null : user.shopId;
     if (!scopedShopId) return jsonError('Thieu shopId de tao don hang.', isAdmin(user) ? 400 : 403);
+
+    if (user.role === 'admin' && user.parentAdminId) {
+      const shop = await prisma.shop.findUnique({ where: { id: scopedShopId }, select: { adminId: true } });
+      if (!shop || shop.adminId !== user.id) {
+        return jsonError('Ban khong co quyen tao don hang cho shop nay.', 403);
+      }
+    }
 
     let normalizedItems = [];
     let codAmount = 0;
@@ -257,6 +283,7 @@ export async function POST(request) {
           appliedRateTierId: finalAppliedTierId,
           totalValue: nextTotalValue,
           note: body.note || null,
+          goodsContent: body.goodsContent ? body.goodsContent.substring(0, 500) : null,
           customerId: customerResult.customerId,
           shopId: scopedShopId,
           status: 'pending',

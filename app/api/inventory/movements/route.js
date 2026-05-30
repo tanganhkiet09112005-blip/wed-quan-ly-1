@@ -35,7 +35,7 @@ export async function POST(request) {
     });
     if (!variant) return jsonError('Không tìm thấy SKU cần điều chỉnh.', 404);
 
-    const accessError = assertShopAccess(user, variant.shopId);
+    const accessError = await assertShopAccess(user, variant.shopId);
     if (accessError) return accessError;
 
     const nextStock = variant.stockQuantity + delta;
